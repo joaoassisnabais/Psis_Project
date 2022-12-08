@@ -6,8 +6,7 @@
 #include <unistd.h>
 
 
-//initialize the udp socket
-int udp_socket_init(char * host, char * port){
+int udp_socket_init(char * address, char * port){
     struct addrinfo hints,*result;
     int sfd;
 
@@ -17,14 +16,14 @@ int udp_socket_init(char * host, char * port){
         exit(-1);
     }
 
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;      /* Allow IPv4 */
     hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
     hints.ai_flags = AI_PASSIVE;    /* Receiving */
     hints.ai_protocol = 0;          /* Any protocol */
 
     //Get the address info
-    if (getaddrinfo(host, port, &hints, &result) != 0) {
+    if (getaddrinfo(address, port, &hints, &result) != 0) {
         perror("");
         exit(-1);
     }
