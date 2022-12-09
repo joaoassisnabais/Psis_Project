@@ -31,8 +31,6 @@ void draw_player(WINDOW *win, player_position_t * player, bool delete){
 
 void move_player (player_position_t * player, int direction){
 
-    int x=player->x, y=player->y;
-
     if (direction == KEY_UP){
         if (player->y != 1){
             player->y--;
@@ -62,12 +60,16 @@ void updatePosition(player_position_t *player, int direction){
 
     char placeholder = mvwinch(my_win, aux.y, aux.x);
     if (placeholder == ' ' || placeholder == player->c){    /*moves into empty space or the wall*/
+        draw_player(my_win, player, true);
         player->x = aux.x;
         player->y = aux.y;
+        draw_player(my_win, player, false);
     }else if(placeholder<='5' && placeholder>='1'){         /*moves into a health pack*/
+        draw_player(my_win, player, true);
         player->x = aux.x;
         player->y = aux.y;
         player->health+=placeholder-'0';
+        draw_player(my_win, player, false);
     }else if(placeholder=='A' || placeholder=='B' || placeholder=='C' || placeholder=='D' || placeholder=='E' ||
              placeholder=='F' || placeholder=='G' || placeholder=='H' || placeholder=='I' || placeholder=='J'){     /*moves into another player*/
         player->health++;
