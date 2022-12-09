@@ -7,11 +7,8 @@
 #include <ncurses.h>
 
 #include "server.h"
+#include "list.h"
 #include "chase.h"
-
-client *head_clients = NULL;
-WINDOW *my_win = NULL;
-WINDOW *message_win = NULL;
 
 int main(int argc, char **argv){
     int port;
@@ -28,7 +25,8 @@ int main(int argc, char **argv){
 
 
 void server_loop(char* addr, char* port){
-    char msg[128];
+    char in_msg[128], ip_address[20];
+    void *msg = in_msg;
     struct sockaddr_in clientAddr;
     socklen_t clientAddrLen = sizeof(clientAddr);
 
@@ -42,87 +40,53 @@ void server_loop(char* addr, char* port){
             exit(-1);
         }; 
 
-        run_processes(msg, inet_ntoa(clientAddr.sin_addr));
-        
+        strcpy(ip_address, inet_ntoa(clientAddr.sin_addr));
+        run_processes(msg, ip_address);
 
-        //Send the message back to the client (DONT FORGET TO CHANGE MESSAGE)
-        if (sendto(udp_socket, msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, &clientAddrLen) != sizeof(msg) ){
-            perror("Full message wasn't sent");
-            exit(-1);
+        if(strcmp(msg, "no_reply") != 0){   /* If the client is disconnected or the message isn't listed, don't send anything */
+            if(memcmp(msg, my_win, sizeof(my_win)) == 0){
+                if (sendto(udp_socket, msg, sizeof(my_win), 0, (struct sockaddr *) &clientAddr, &clientAddrLen) != sizeof(msg) ){
+                    perror("Full message wasn't sent");
+                    exit(-1);
+                }
+            }else if (sendto(udp_socket, msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, &clientAddrLen) != sizeof(msg) ){
+                perror("Full message wasn't sent");
+                exit(-1);
+            }
         }
+            
     }
 
 }
 
-void addClient(char *ip_adress, player_position_t *p) {
-    client *newClient = (client*) malloc(sizeof(client)); 
-    strcpy(newClient-> ip_adress, ip_adress);
-    newClient->health = 10;
-    newClient->p = p;
-    newClient->next = NULL;
-
-    if (head_clients == NULL) {
-        head_clients = newClient;
-        newClient->p->c = 'A';
-    } else {
-        client *current = head_clients;
-        while (current->next != NULL) {
-            current = current->next;
-        }
-        newClient->p->c = current->p->c + 1;
-        current->next = newClient;
-    }
-}
-
-//remove client from list
-void removeClient(char *ip_adress) {
-    client *current = head_clients;
-    client *previous = NULL;
-
-    if (current == NULL) {  //no list
-        return;
-    }
-
-    //runs until it finds the client or the end of the list
-    while (current != NULL && strcmp(current->ip_adress, ip_adress) != 0) { 
-        previous = current;
-        current = current->next;
-    }
-
-    //client not found
-    if (current == NULL) {
-        return;
-    }
-
-    //client is first in list (1) or in the middle/end of list (2)
-    if (previous == NULL) {
-        head_clients = current->next;
-    } else {
-        previous->next = current->next;
-    }
-
-    free(current->p);
-    free(current);
-}
-
-void run_processes(char *msg, char *ip_adress){
+void run_processes(void *msg, char *ip_adress){
         
+        char command[16];
+        sscanf(msg, "%s", command);
 
-        if (strcmp(msg, "connect") == 0) {
-            addClient(ip_adress, init_client(my_win));
-            strcpy(msg, "ball_info ");
+        if (strcmp(command, "connect") == 0) {
+            client *new = addClient(ip_adress, init_client(my_win), head_clients);
+            strcpy(msg, "");
+            sprintf(msg, "ball_info %d %d %c", new->p->x, new->p->y, new->p->c);
+            return;
 
-        } else if (strcmp(msg, "moove") == 0) {
-            //moove_player();
-            strcpy(msg, "moove");
-        } else if (strcmp(msg, "draw") == 0) {
-            //draw_player();
-            strcpy(msg, "draw");
-        } else if (strcmp(msg, "delete") == 0) {
-            //delete_player();
-            strcpy(msg, "delete");
+        } else if (strncmp(command, "move") == 0) {
+            if(getClient(ip_adress,head_clients)->p->health <= 0){
+                strcpy(msg, "dead");    /* Healt_0 message */
+                removeClient(ip_adress, head_clients);
+                return;
+            }
+            int move_key;
+            sscanf(msg, "%*s %d", move_key);
+            updatePosition(getClient(ip_adress, head_clients)->p, move_key);
+            msg = my_win;
+            return;
+
+        } else if (strcmp(command, "disconnect") == 0) {
+            removeClient(ip_adress, head_clients);
+            strcpy(msg, "no_reply");
         } else {
-            strcpy(msg, "error");
+            strcpy(msg, "no_reply");
         }
 }
 
