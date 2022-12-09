@@ -60,19 +60,17 @@ void server_loop(char* addr, char* port){
 }
 
 void run_processes(void *msg, char *ip_adress){
-        
         char command[16];
         sscanf(msg, "%s", command);
 
-        if (strcmp(command, "connect") == 0) {
+        if (strcmp(command, "connect") == 0) {  /* Connect */
             client *new = addClient(ip_adress, init_client(my_win), head_clients);
             strcpy(msg, "");
             sprintf(msg, "ball_info %d %d %c", new->p->x, new->p->y, new->p->c);
-            return;
 
-        } else if (strncmp(command, "move") == 0) {
-            if(getClient(ip_adress,head_clients)->p->health <= 0){
-                strcpy(msg, "dead");    /* Healt_0 message */
+        } else if (strncmp(command, "move") == 0) { /* Move */
+            if(getClient(ip_adress,head_clients)->p->health <= 0){ /* Healt_0 check */
+                strcpy(msg, "dead");
                 removeClient(ip_adress, head_clients);
                 return;
             }
@@ -80,14 +78,15 @@ void run_processes(void *msg, char *ip_adress){
             sscanf(msg, "%*s %d", move_key);
             updatePosition(getClient(ip_adress, head_clients)->p, move_key);
             msg = my_win;
-            return;
 
-        } else if (strcmp(command, "disconnect") == 0) {
+        } else if (strcmp(command, "disconnect") == 0) { /* Disconnect */
             removeClient(ip_adress, head_clients);
             strcpy(msg, "no_reply");
-        } else {
+
+        } else { /* Not a valid command */
             strcpy(msg, "no_reply");
         }
+        return;
 }
 
 
