@@ -4,7 +4,36 @@
 
 #include "list.h"
 #include "chase.h"
+#include "message.h"
 #include "server.h"
+
+void render_message(message msg, WINDOW *my_win, WINDOW *message_win){
+    int i;
+    char *txt = msg.txt;
+    player_position_t *players = msg.players;
+    player_position_t *bots = msg.bots;
+    player_position_t *prizes = msg.prizes;
+
+    wclear(my_win); //might need to add box
+    wclear(message_win);
+    //wprintw(message_win, "%s", txt);
+    
+    //print players
+    for(i = 0; i < msg.num_players; i++){
+        mvwprintw(my_win, players[i].y, players[i].x, "%c", players[i].c);
+    }
+    //print bots
+    for(i = 0; i < msg.num_bots; i++){
+        mvwprintw(my_win, bots[i].y, bots[i].x, "%c", bots[i].c);
+    }
+    //print prizes
+    for(i = 0; i < msg.num_prizes; i++){
+        mvwprintw(my_win, prizes[i].y, prizes[i].x, "%c", prizes[i].c);
+    }
+
+    wrefresh(my_win);
+    wrefresh(message_win);
+}
 
 void init_window(){
     initscr();		        /* Start curses mode */

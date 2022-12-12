@@ -8,6 +8,8 @@
 #include <string.h>
 
 #include "server.h"
+#include "defs.h"
+#include "message.h"
 #include "list.h"
 #include "chase.h"
 
@@ -27,66 +29,68 @@ int main(int argc, char **argv){
 
 
 void server_loop(char* addr, char* port){
-    char in_msg[128], ip_address[20];
-    void *msg = in_msg;
+    char ip_address[20];
+    message msg;
     struct sockaddr_in clientAddr;
-    socklen_t clientAddrLen = sizeof(clientAddr);
+    socklen_t clientAddrLen;
 
     int udp_socket = udp_socket_init(addr, port);
 
     while (1)
     {    
         //Receive the message from the client
-        if(recvfrom(udp_socket, &msg, MSG_LEN, 0, (struct sockaddr *) &clientAddr, &clientAddrLen) == -1){
+        if(recvfrom(udp_socket, &msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, &clientAddrLen) == -1){
             perror("Error receiving message");
             exit(-1);
         }; 
 
         strcpy(ip_address, inet_ntoa(clientAddr.sin_addr));
-        run_processes(msg, ip_address);
+        run_processes(&msg, ip_address);
 
-        if(strcmp(msg, "no_reply") != 0){   /* If the client is disconnected or the message isn't listed, don't send anything */
-            if(memcmp(msg, my_win, sizeof(my_win)) == 0){
-                if (sendto(udp_socket, msg, sizeof(my_win), 0, (struct sockaddr *) &clientAddr, &clientAddrLen) != sizeof(msg) ){
-                    perror("Full message wasn't sent");
-                    exit(-1);
-                }
-            }else if (sendto(udp_socket, msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, &clientAddrLen) != sizeof(msg) ){
+        if(strcmp(msg.txt, "no_reply") != 0){   /* If the client is disconnected or the message isn't listed, don't send anything */
+            if (sendto(udp_socket, &msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, &clientAddrLen) != sizeof(msg) ){
                 perror("Full message wasn't sent");
                 exit(-1);
             }
-        }
-            
+        }       
     }
-
 }
 
-void run_processes(void *msg, char *ip_adress){
+void run_processes(message *msg, char *ip_adress){
         char command[16];
-        sscanf(msg, "%s", command);
+        sscanf(msg->txt, "%s", command);
 
         if (strcmp(command, "connect") == 0) {  /* Connect */
             client *new = addClient(ip_adress, init_client(my_win), head_clients);
-            strcpy(msg, "");
-            sprintf(msg, "ball_info %d %d %c", new->p->x, new->p->y, new->p->c);
+            
+            char msg_txt[20];
+            sprintf(msg_txt, "ball_info %d %d %c", new->p->x, new->p->y, new->p->c);
+            
+            create_message(msg, msg_txt, getPlayersArray(head_clients), getPlayersArray(head_clients), getPlayersArray(head_clients));
 
         } else if (strcmp(command, "move") == 0) { /* Move */
             if(getClient(ip_adress,head_clients)->p->health <= 0){ /* Healt_0 check */
-                strcpy(msg, "dead");
                 removeClient(ip_adress, head_clients);
+                create_message(msg, "dead", getPlayersArray(head_clients), getPlayersArray(head_clients), getPlayersArray(head_clients));
                 return;
             }
+            
             int move_key;
-            sscanf(msg, "%*s %d", move_key);
-            updatePosition(getClient(ip_adress, head_clients)->p, move_key);
-            msg = my_win;
+            sscanf(msg->txt, "%*s %d", move_key);   /* Get the movement key */
+            player_position_t *current = getClient(ip_adress, head_clients)->p;
+            updatePosition(current, move_key);
+
+            char msg_txt[20];
+            sprintf(msg_txt, "field_status %d %d %d", current->x, current->y, current->health);
+
+            create_message(msg, msg_txt, getPlayersArray(head_clients), getPlayersArray(head_clients), getPlayersArray(head_clients));
 
         } else if (strcmp(command, "disconnect") == 0) { /* Disconnect */
             removeClient(ip_adress, head_clients);
-            strcpy(msg, "no_reply");
+            strcpy(msg->txt, "no_reply");
 
         } else { /* Not a valid command */
-            strcpy(msg, "no_reply");
+            strcpy(msg->txt, "no_reply");
         }
         return;
 }

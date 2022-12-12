@@ -3,7 +3,6 @@
 
 #define WINDOW_SIZE 20
 #define MSG_TXT_SIZE 1024
-#define MSG_WIN_SIZE 1024
 #define MAX_HP 10
 
 

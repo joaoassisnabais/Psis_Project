@@ -39,15 +39,11 @@ void client_loop(char *ip, int port){
     char message[100];
 
     player_position_t *player = init_client(my_win);
-
     struct sockaddr servaddr = getAddr(ip, port);
     
     sprintf(message, "connect");
-
-    send_msg(&message, &servaddr);
-
-    //break the loop if player is dead  
-
+    send(&message, &servaddr);
+    receive(servaddr, player);
 
     int key=-1;
     while(key != 'q' && key != 27){
@@ -55,68 +51,60 @@ void client_loop(char *ip, int port){
 
         if (key == KEY_LEFT || key == KEY_RIGHT || key == KEY_UP || key == KEY_DOWN){
             sprintf(message, "move %d", key);
-            send(&message, &servaddr);
+            send(&message, servaddr);
+            receive(servaddr, player);
         }
-        receive(servaddr, player);
         if(player->health == 0){
             break;
         }
     }
-    send("disconnect", &servaddr);
+    send("disconnect", servaddr);
     free(player);
     close(udp_socket);
 }
 
-void send(void *msg, struct sockaddr *servaddr){
+void send(char *msg_txt, struct sockaddr servaddr){
     char command[16];
-    sscanf(msg, "%s", command);
+    message msg;
+    strncpy(msg.txt, msg_txt, MSG_TXT_SIZE);
+
+    sscanf(msg.txt, "%s", command);
 
     if(strcmp(command, "connect") == 0){
-        sendto(udp_socket, &msg, strlen(msg), 0, &servaddr, sizeof(servaddr));
+        sendto(udp_socket, &msg, sizeof(msg), 0, &servaddr, sizeof(servaddr));
 
     }else if(strcmp(command, "move") == 0){
-        sendto(udp_socket, &msg, strlen(msg), 0, &servaddr, sizeof(servaddr));
+        sendto(udp_socket, &msg, sizeof(msg), 0, &servaddr, sizeof(servaddr));
 
     }else if(strcmp(command, "disconnect") == 0){
-        sendto(udp_socket, &msg, strlen(msg), 0, &servaddr, sizeof(servaddr));
+        sendto(udp_socket, &msg, sizeof(msg), 0, &servaddr, sizeof(servaddr));
     }
 
 }
 
 void receive(struct sockaddr servaddr, player_position_t *player){
-    void *buffer;
+    message buffer;
     char command[16];
-    int n;
 
-    buffer = malloc(MSG_TXT_SIZE + MSG_WIN_SIZE);
-
-    if(recvfrom(udp_socket, &buffer, sizeof(buffer), 0, &servaddr, sizeof(servaddr)) != MSG_TXT_SIZE + MSG_WIN_SIZE){
-        perror("Error receiving message, message is not the correct size");
+    if(recvfrom(udp_socket, &buffer, sizeof(buffer), 0, &servaddr, sizeof(servaddr)) == 0){
+        perror("Error receiving message, message is empty");
         exit(-1);
     }
 
-    message msg = read_message(buffer);
-    sscanf(msg.txt, "%s", command);
-
+    sscanf(buffer.txt, "%s", command);
+    
     if(strcmp(command, "ball_info") == 0){
-        sscanf(msg.txt, "%*s %d %d %c", player->x, player->y, player->c);
+        sscanf(buffer.txt, "%*s %d %d %c", player->x, player->y, player->c);
         player->health = MAX_HP;
-        *my_win = msg.win;
-        wrefresh(my_win);
-        //merdas para dar print na msg_win
+        render_message(buffer, my_win, message_win);        
 
     }else if(strcmp(command, "field_status") == 0){
-        sscanf(msg.txt, "%*s %d %d %d", player->x, player->y, player->health);
-        *my_win = msg.win;
-        wrefresh(my_win);
-        //merdas para dar print na msg_win
+        sscanf(buffer.txt, "%*s %d %d %d", player->x, player->y, player->health);
+        render_message(buffer, my_win, message_win);
 
     }else if(strcmp(command, "dead") == 0){
         player->health = 0;
-        *my_win = msg.win;
-        wrefresh(my_win);
-        //merdas para dar print na msg_win
+        render_message(buffer, my_win, message_win);
     }
 
-    free(buffer);
 }

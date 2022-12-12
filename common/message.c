@@ -1,24 +1,27 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "message.h"
+#include "list.h"
 #include "defs.h"
 
-message read_message(void *buffer){
-    char txt_buffer[MSG_TXT_SIZE], win_buffer[MSG_WIN_SIZE];
-    message msg;
-
-    if(buffer ==  NULL){
-        perror("Buffer from incoming message is NULL");
-        exit(-1);
+void create_message(message *msg, char *msg_txt, array_and_size *players, array_and_size *bots, array_and_size *prizes){ 
+    strncpy(msg->txt, msg_txt, MSG_TXT_SIZE);
+    msg->num_players = players->size;
+    msg->num_bots = bots->size;
+    msg->num_prizes = prizes->size;
+    
+    for(int i = 0; i < players->size; i++){
+        msg->players[i] = players->array[i];
     }
-
-    strncpy(&txt_buffer, &buffer, MSG_TXT_SIZE);
-    memcpy(&win_buffer, &buffer + MSG_TXT_SIZE, MSG_WIN_SIZE);
-
-    strncpy(msg.txt, txt_buffer, MSG_TXT_SIZE);
-    memcpy((void *)&msg.win, win_buffer, MSG_WIN_SIZE);
-
-    return msg;
+    for(int i = 0; i < bots->size; i++){
+        msg->bots[i] = bots->array[i];
+    }
+    for(int i = 0; i < prizes->size; i++){
+        msg->prizes[i] = prizes->array[i];
+    }
+    freeArrayAndSize(players);
+    freeArrayAndSize(bots);
+    freeArrayAndSize(prizes);
 }
