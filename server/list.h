@@ -4,7 +4,7 @@
 #define LIST_H
 
 typedef struct client{
-    char ip_adress[128]; /* type? */
+    char ip_adress[20]; 
     player_position_t *p;
 
     struct client *next;

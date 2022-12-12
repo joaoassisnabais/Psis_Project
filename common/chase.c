@@ -6,13 +6,25 @@
 #include "chase.h"
 #include "server.h"
 
+void init_window(){
+    initscr();		        /* Start curses mode */
+    keypad(stdscr, TRUE);   /* Enable keyboard mapping */
+	noecho();			    /* Don't echo() while we do getch */
 
+    my_win = newwin(WINDOW_SIZE, WINDOW_SIZE, 0, 0);
+    box(my_win, 0 , 0);	
+	wrefresh(my_win);
+
+    message_win = newwin(5, WINDOW_SIZE, WINDOW_SIZE, 0);
+    box(message_win, 0 , 0);	
+	wrefresh(message_win);
+}
 
 void new_player_position (player_position_t *player){
     player->x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
     player->y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
     player->c = NULL;
-    player->health = 10;
+    player->health = MAX_HP;
 }
 
 void draw_player(WINDOW *win, player_position_t * player, bool delete){
@@ -76,8 +88,8 @@ void updatePosition(player_position_t *player, int direction){
         getClientByChar(placeholder, head_clients)->p->health--;
     }
 
-    if(player->health>10){
-        player->health=10;
+    if(player->health>MAX_HP){
+        player->health=MAX_HP;
     }
 }
 

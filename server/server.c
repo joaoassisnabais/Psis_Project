@@ -5,10 +5,12 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <ncurses.h>
+#include <string.h>
 
 #include "server.h"
 #include "list.h"
 #include "chase.h"
+
 
 int main(int argc, char **argv){
     int port;
@@ -68,7 +70,7 @@ void run_processes(void *msg, char *ip_adress){
             strcpy(msg, "");
             sprintf(msg, "ball_info %d %d %c", new->p->x, new->p->y, new->p->c);
 
-        } else if (strncmp(command, "move") == 0) { /* Move */
+        } else if (strcmp(command, "move") == 0) { /* Move */
             if(getClient(ip_adress,head_clients)->p->health <= 0){ /* Healt_0 check */
                 strcpy(msg, "dead");
                 removeClient(ip_adress, head_clients);
@@ -87,19 +89,4 @@ void run_processes(void *msg, char *ip_adress){
             strcpy(msg, "no_reply");
         }
         return;
-}
-
-
-void init_window(){
-    initscr();		    	/* Start curses mode */
-    keypad(stdscr, TRUE);    /* Enable keyboard mapping */
-	noecho();			    /* Don't echo() while we do getch */
-
-    my_win = newwin(WINDOW_SIZE, WINDOW_SIZE, 0, 0);
-    box(my_win, 0 , 0);	
-	wrefresh(my_win);
-
-    message_win = newwin(5, WINDOW_SIZE, WINDOW_SIZE, 0);
-    box(message_win, 0 , 0);	
-	wrefresh(message_win);
 }

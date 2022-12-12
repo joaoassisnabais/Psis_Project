@@ -37,3 +37,25 @@ int udp_socket_init(char * address, char * port){
     
     return sfd;
 }
+
+struct sockaddr getAddr(char *ip, char *port){
+    struct addrinfo hints,*result;
+    struct sockaddr addr;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;      /* Allow IPv4 */
+    hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
+    hints.ai_protocol = 0;          /* Any protocol */
+
+    //Get the address info
+    if (getaddrinfo(ip, port, &hints, &result) != 0) {
+        perror("");
+        exit(-1);
+    }
+
+    addr = *result->ai_addr;
+    freeaddrinfo(result);
+    
+    return addr;
+}
+
