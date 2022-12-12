@@ -42,7 +42,7 @@ void client_loop(char *ip, int port){
     struct sockaddr servaddr = getAddr(ip, port);
     
     sprintf(message, "connect");
-    send(&message, &servaddr);
+    send(&message, servaddr);
     receive(servaddr, player);
 
     int key=-1;

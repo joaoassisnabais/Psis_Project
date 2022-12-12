@@ -1,4 +1,6 @@
 #include <ncurses.h>
+#include "defs.h"
+#include "message.h"
 
 #ifndef CHASE_H
 #define CHASE_H
