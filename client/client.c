@@ -42,7 +42,7 @@ void client_loop(char *ip, int port){
     struct sockaddr servaddr = getAddr(ip, port);
     
     sprintf(message, "connect");
-    send(&message, servaddr);
+    send_msg(&message, servaddr);
     receive(servaddr, player);
 
     int key=-1;
@@ -51,19 +51,19 @@ void client_loop(char *ip, int port){
 
         if (key == KEY_LEFT || key == KEY_RIGHT || key == KEY_UP || key == KEY_DOWN){
             sprintf(message, "move %d", key);
-            send(&message, servaddr);
+            send_msg(&message, servaddr);
             receive(servaddr, player);
         }
         if(player->health == 0){
             break;
         }
     }
-    send("disconnect", servaddr);
+    send_msg("disconnect", servaddr);
     free(player);
     close(udp_socket);
 }
 
-void send(char *msg_txt, struct sockaddr servaddr){
+void send_msg(char *msg_txt, struct sockaddr servaddr){
     char command[16];
     message msg;
     strncpy(msg.txt, msg_txt, MSG_TXT_SIZE);

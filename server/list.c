@@ -8,6 +8,9 @@
 
 #include "list.h"
 #include "chase.h"
+#include "prizes.h"
+
+/*********************************CLIENTS**********************************/
 
 client * addClient(char *ip_adress, player_position_t *p, client *head_clients) {
     client *newClient = (client*) malloc(sizeof(client)); 
@@ -163,28 +166,7 @@ client *getClientByPos(int x, int y, client *head_clients) {
     return current;
 }
 
-//add prize to list
-prize *addPrize(prize *pr, prize *head_prizes) {
-    prize *newPrize = (prize*) malloc(sizeof(prize));
-    if (newPrize == NULL) {
-        perror("Error allocating memory for new prize");
-        exit(-1);
-    }
-    newPrize->pr;
-    newPrize->next = NULL;
-
-    if (head_prizes == NULL) {
-        head_prizes = newPrize;
-    } else {
-        prize *current = head_prizes;
-        while (current->next != NULL) {
-            current = current->next;
-        }
-        current->next = newPrize;
-    }
-
-    return newPrize;
-}
+/*********************************BOTS**********************************/
 
 //initialize bot list of type client with num_bots bots
 void initBots(int num_bots, char *ip, client *head_bots) {
@@ -193,7 +175,7 @@ void initBots(int num_bots, char *ip, client *head_bots) {
     }
 }
 
-//create addBot without using addClient and using new_bot_position
+//create addBot without using addClient
 client *addBot(char *ip, client *head_bots) {
     player_position_t *p = (player_position_t*) malloc(sizeof(player_position_t));
     if (p == NULL) {
@@ -224,3 +206,4 @@ client *addBot(char *ip, client *head_bots) {
 
     return newBot;
 }
+

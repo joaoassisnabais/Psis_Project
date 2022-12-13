@@ -7,6 +7,7 @@
 #include "prizes.h"
 #include "message.h"
 #include "server.h"
+#include "prizes.h"
 
 void render_message(message msg, WINDOW *my_win, WINDOW *message_win){
     int i;
@@ -67,6 +68,7 @@ void new_player_position (player_position_t *player){
 void new_bot_position (player_position_t *bot){
     player_position_t aux;
     bot->c = '*';
+    bot->health = 99999;
     char placeholder = 'a';
     while (placeholder != ' '){
         aux.x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
@@ -77,18 +79,6 @@ void new_bot_position (player_position_t *bot){
     bot->y = aux.y;
 }
 
-void new_prize (prize_pos *prize){
-    prize_pos aux;
-    prize->hp = 1 + (rand() % 5);
-    char placeholder = NULL;
-    while (placeholder != ' '){
-        aux.x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
-        aux.y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
-        placeholder = mvwinch(my_win, aux.y, aux.x);
-    }
-    prize->x = aux.x;
-    prize->y = aux.y;
-}
 
 void draw_player(WINDOW *win, player_position_t * player, bool delete){
     int ch;
@@ -104,19 +94,6 @@ void draw_player(WINDOW *win, player_position_t * player, bool delete){
     wrefresh(win);
 }
 
-void draw_prize(WINDOW *win, prize_pos * prize, bool delete){
-    int hp;
-    if(delete){
-        hp = ' ';
-    }else{
-        hp = prize->hp;
-    }
-    int p_x = prize->x;
-    int p_y = prize->y;
-    wmove(win, p_y, p_x);
-    waddch(win, hp);
-    wrefresh(win);
-}
 
 void move_player (player_position_t * player, int direction){
 
@@ -145,7 +122,11 @@ void move_player (player_position_t * player, int direction){
 
 void updatePosition(player_position_t *player, int direction){
     player_position_t aux = *player;
+    bool is_bot;
     move_player(&aux, direction);
+
+    if(player->c == '*') is_bot = true;
+    else is_bot = false;
 
     char placeholder = mvwinch(my_win, aux.y, aux.x);
     if (placeholder == ' ' || placeholder == player->c){    /*moves into empty space or the wall*/
@@ -153,19 +134,26 @@ void updatePosition(player_position_t *player, int direction){
         player->x = aux.x;
         player->y = aux.y;
         draw_player(my_win, player, false);
-    }else if(placeholder<='5' && placeholder>='1'){         /*moves into a health pack*/
+
+    }else if((!is_bot) && (placeholder<='5' && placeholder>='1')){         /*moves into a health pack*/
         draw_player(my_win, player, true);
         player->x = aux.x;
         player->y = aux.y;
         player->health+=placeholder-'0';
+
+        prize *to_delete = getPrizeByPos(aux.x, aux.y, head_prizes);    /*delete the prize from screen and list*/
+        draw_prize(my_win, to_delete, true);
+        removePrize(to_delete, &head_prizes);
+        
         draw_player(my_win, player, false);
+
     }else if(placeholder=='A' || placeholder=='B' || placeholder=='C' || placeholder=='D' || placeholder=='E' ||
              placeholder=='F' || placeholder=='G' || placeholder=='H' || placeholder=='I' || placeholder=='J'){     /*moves into another player*/
-        player->health++;
+        if(!is_bot) player->health++;
         getClientByChar(placeholder, head_clients)->p->health--;
     }
 
-    if(player->health>MAX_HP){
+    if(!is_bot && (player->health>MAX_HP)){
         player->health=MAX_HP;
     }
 }
@@ -181,11 +169,4 @@ player_position_t *init_client(WINDOW *my_win){
     return p;
 }
 
-prize_pos *init_prize(WINDOW *my_win){
-    prize_pos *pr = (prize_pos *) malloc(sizeof(prize_pos));
 
-    new_prize(pr); 
-    draw_prize(my_win, &pr, false);
-
-    return pr;
-}
