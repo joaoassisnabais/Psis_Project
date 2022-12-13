@@ -1,4 +1,5 @@
 #include "defs.h"
+#include "prizes.h"
 
 #ifndef LIST_H
 #define LIST_H
@@ -10,6 +11,12 @@ typedef struct client{
     struct client *next;
 } client;
 
+typedef struct prize{
+    prize_pos *pr;
+
+    struct prize *next;
+} prize;
+
 typedef struct list_to_array{
     player_position_t *array;
     int size;
@@ -20,8 +27,9 @@ void removeClient(char *ip_adress, client *head_clients);
 client *getLastClient(client *head_clients);
 client *getClient(char *ip_adress, client *head_clients);
 client *getClientByChar(char c, client *head_clients);
-player_position_t *getPlayersArray(client *head_clients);
+array_and_size*getPlayersArray(client *head_clients);
 void freeArrayAndSize(array_and_size *array);
 void freeList(client *head_clients);
+prize *addPrize(prize *pr, prize *head_prizes);
 
 #endif

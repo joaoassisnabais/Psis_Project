@@ -11,7 +11,7 @@
 
 client * addClient(char *ip_adress, player_position_t *p, client *head_clients) {
     client *newClient = (client*) malloc(sizeof(client)); 
-    if( newClient == NULL) {
+    if(newClient == NULL) {
         perror("Error allocating memory for new client");
         exit(-1);
     }
@@ -148,3 +148,79 @@ void freeList(client *head_clients) {
     }
 }
 
+//get client by position
+client *getClientByPos(int x, int y, client *head_clients) {
+    client *current = head_clients;
+
+    if (current == NULL) {
+        return NULL;
+    }
+
+    while (current != NULL && (current->p->x != x && current->p->y != y)) {
+        current = current->next;
+    }
+
+    return current;
+}
+
+//add prize to list
+prize *addPrize(prize *pr, prize *head_prizes) {
+    prize *newPrize = (prize*) malloc(sizeof(prize));
+    if (newPrize == NULL) {
+        perror("Error allocating memory for new prize");
+        exit(-1);
+    }
+    newPrize->pr;
+    newPrize->next = NULL;
+
+    if (head_prizes == NULL) {
+        head_prizes = newPrize;
+    } else {
+        prize *current = head_prizes;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = newPrize;
+    }
+
+    return newPrize;
+}
+
+//initialize bot list of type client with num_bots bots
+void initBots(int num_bots, char *ip, client *head_bots) {
+    for (int i = 0; i < num_bots; i++) {
+        addBot(ip, head_bots);
+    }
+}
+
+//create addBot without using addClient and using new_bot_position
+client *addBot(char *ip, client *head_bots) {
+    player_position_t *p = (player_position_t*) malloc(sizeof(player_position_t));
+    if (p == NULL) {
+        perror("Error allocating memory for new bot");
+        exit(-1);
+    }
+
+    client *newBot = (client*) malloc(sizeof(client));
+    if (newBot == NULL) {
+        perror("Error allocating memory for new bot");
+        exit(-1);
+    }
+
+    strcpy(newBot->ip_adress, ip);
+    new_bot_position(p);
+    newBot->p = p;
+    newBot->next = NULL;
+
+    if (head_bots == NULL) {
+        head_bots = newBot;
+    } else {
+        client *current = head_bots;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = newBot;
+    }
+
+    return newBot;
+}

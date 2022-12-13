@@ -35,9 +35,10 @@ void server_loop(char* addr, char* port){
     socklen_t clientAddrLen;
 
     int udp_socket = udp_socket_init(addr, port);
-
+    prize *new = addPrize(init_prize(my_win), head_prizes);
     while (1)
     {    
+        
         //Receive the message from the client
         if(recvfrom(udp_socket, &msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, &clientAddrLen) == -1){
             perror("Error receiving message");
@@ -88,6 +89,10 @@ void run_processes(message *msg, char *ip_adress){
         } else if (strcmp(command, "disconnect") == 0) { /* Disconnect */
             removeClient(ip_adress, head_clients);
             strcpy(msg->txt, "no_reply");
+
+        } else if (strcmp(command, "bot_connect") == 0) { /* bot connect */
+            client *new = addClient(ip_adress, init_client(my_win), head_clients);
+             
 
         } else { /* Not a valid command */
             strcpy(msg->txt, "no_reply");

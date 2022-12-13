@@ -4,6 +4,7 @@
 
 #include "list.h"
 #include "chase.h"
+#include "prizes.h"
 #include "message.h"
 #include "server.h"
 
@@ -12,7 +13,7 @@ void render_message(message msg, WINDOW *my_win, WINDOW *message_win){
     char *txt = msg.txt;
     player_position_t *players = msg.players;
     player_position_t *bots = msg.bots;
-    player_position_t *prizes = msg.prizes;
+    prize_pos *prizes = msg.prizes;
 
     wclear(my_win); //might need to add box
     wclear(message_win);
@@ -28,7 +29,7 @@ void render_message(message msg, WINDOW *my_win, WINDOW *message_win){
     }
     //print prizes
     for(i = 0; i < msg.num_prizes; i++){
-        mvwprintw(my_win, prizes[i].y, prizes[i].x, "%c", prizes[i].c);
+        mvwprintw(my_win, prizes[i].y, prizes[i].x, "%c", prizes[i].hp);
     }
 
     wrefresh(my_win);
@@ -50,10 +51,43 @@ void init_window(){
 }
 
 void new_player_position (player_position_t *player){
-    player->x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
-    player->y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
+    player_position_t aux;
     player->c = NULL;
     player->health = MAX_HP;
+    char placeholder = 'a';
+    while (placeholder != ' '){
+        aux.x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
+        aux.y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
+        placeholder = mvwinch(my_win, aux.y, aux.x);
+    }
+    player->x = aux.x;
+    player->y = aux.y;
+}
+
+void new_bot_position (player_position_t *bot){
+    player_position_t aux;
+    bot->c = '*';
+    char placeholder = 'a';
+    while (placeholder != ' '){
+        aux.x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
+        aux.y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
+        placeholder = mvwinch(my_win, aux.y, aux.x);
+    }
+    bot->x = aux.x;
+    bot->y = aux.y;
+}
+
+void new_prize (prize_pos *prize){
+    prize_pos aux;
+    prize->hp = 1 + (rand() % 5);
+    char placeholder = NULL;
+    while (placeholder != ' '){
+        aux.x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
+        aux.y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
+        placeholder = mvwinch(my_win, aux.y, aux.x);
+    }
+    prize->x = aux.x;
+    prize->y = aux.y;
 }
 
 void draw_player(WINDOW *win, player_position_t * player, bool delete){
@@ -67,6 +101,20 @@ void draw_player(WINDOW *win, player_position_t * player, bool delete){
     int p_y = player->y;
     wmove(win, p_y, p_x);
     waddch(win,ch);
+    wrefresh(win);
+}
+
+void draw_prize(WINDOW *win, prize_pos * prize, bool delete){
+    int hp;
+    if(delete){
+        hp = ' ';
+    }else{
+        hp = prize->hp;
+    }
+    int p_x = prize->x;
+    int p_y = prize->y;
+    wmove(win, p_y, p_x);
+    waddch(win, hp);
     wrefresh(win);
 }
 
@@ -131,4 +179,13 @@ player_position_t *init_client(WINDOW *my_win){
     draw_player(my_win, &p, false);
 
     return p;
+}
+
+prize_pos *init_prize(WINDOW *my_win){
+    prize_pos *pr = (prize_pos *) malloc(sizeof(prize_pos));
+
+    new_prize(pr); 
+    draw_prize(my_win, &pr, false);
+
+    return pr;
 }
