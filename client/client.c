@@ -8,7 +8,6 @@
 #include <string.h>
 
 #include "client.h"
-#include "chase.h"
 #include "defs.h"
 #include "udp.h"
 #include "message.h"

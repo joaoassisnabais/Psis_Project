@@ -1,8 +1,3 @@
-
-prize *head_prizes = NULL;
-
-
-
 #ifndef PRIZES_H
 #define PRIZES_H
 
@@ -16,6 +11,8 @@ typedef struct prize{
 
     struct prize *next;
 } prize;
+
+prize *head_prizes = NULL;
 
 //prize *head_prizes;
 prize *addPrize(prize_pos *to_add, prize *head_prizes);

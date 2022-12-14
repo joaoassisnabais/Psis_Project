@@ -132,12 +132,6 @@ array_and_size *getPlayersArray(client *head_clients) {
     return out;
 }
 
-//free array_and_size allocated for listToArray
-void freeArrayAndSize(array_and_size *array) {
-    free(array->array);
-    free(array);
-}
-
 //free all memory allocated for the list and delete all clients
 void freeList(client *head_clients) {
     client *current = head_clients;

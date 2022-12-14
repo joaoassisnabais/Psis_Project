@@ -1,6 +1,5 @@
 #include <ncurses.h>
 #include "defs.h"
-#include "prizes.h"
 #include "message.h"
 
 #ifndef CHASE_H

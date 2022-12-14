@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "message.h"
-#include "list.h"
 #include "defs.h"
 
 void create_message(message *msg, char *msg_txt, array_and_size *players, array_and_size *bots, array_and_size *prizes){ 
@@ -24,4 +23,10 @@ void create_message(message *msg, char *msg_txt, array_and_size *players, array_
     freeArrayAndSize(players);
     freeArrayAndSize(bots);
     freeArrayAndSize(prizes);
+}
+
+//free array_and_size allocated for listToArray
+void freeArrayAndSize(array_and_size *array) {
+    free(array->array);
+    free(array);
 }
