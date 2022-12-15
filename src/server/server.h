@@ -1,4 +1,5 @@
 #include "chase.h"
+#include "list.h"
 
 client *head_clients = NULL;
 client *head_bots = NULL;
@@ -9,6 +10,6 @@ WINDOW *message_win = NULL;
 #ifndef SERVER_H
 #define SERVER_H
 
-
+bool movePlayer(message *msg, player_position_t *p);
 
 #endif
