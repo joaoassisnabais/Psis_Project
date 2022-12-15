@@ -6,13 +6,13 @@
 #include "chase.h"
 
 
-prize *addPrize(prize_pos *to_add, prize *head_prizes) {
+void addPrize(prize_pos *to_add, prize *head_prizes) {
     prize *newPrize = (prize*) malloc(sizeof(prize));
     if (newPrize == NULL) {
         perror("Error allocating memory for new prize");
         exit(-1);
     }
-    newPrize->pr;
+    newPrize->pr = to_add;
     newPrize->next = NULL;
 
     if (head_prizes == NULL) {
@@ -25,12 +25,12 @@ prize *addPrize(prize_pos *to_add, prize *head_prizes) {
         current->next = newPrize;
     }
 
-    return newPrize;
+    return;
 }
 
 
 //get prize by position
-prize *getPrizeByPos(int x, int y, prize *head_prizes) {
+prize_pos *getPrizeByPos(int x, int y, prize *head_prizes) {
     prize *current = head_prizes;
 
     if (current == NULL) {
@@ -41,7 +41,7 @@ prize *getPrizeByPos(int x, int y, prize *head_prizes) {
         current = current->next;
     }
 
-    return current;
+    return current->pr;
 }
 
 //remove prize_pos from prize struct
@@ -88,7 +88,7 @@ int getNumPrizes(prize *head_prizes) {
 }
 
 //array and size for prizes
-array_and_size *getPrizesArray(prize *head_prizes) {
+array_and_size_prizes *getPrizesArray(prize *head_prizes) {
     prize_pos *array = (prize_pos*) malloc(sizeof(prize_pos) * 10);
     if (array == NULL) {
         perror("Error allocating memory for prize_pos array");
@@ -103,7 +103,7 @@ array_and_size *getPrizesArray(prize *head_prizes) {
         current = current->next;
         i++;
     }
-    array_and_size *out = (array_and_size*) malloc(sizeof(array_and_size));
+    array_and_size_prizes *out = (array_and_size_prizes*) malloc(sizeof(array_and_size_prizes));
     out->array = array;
     out->size = i;
     
@@ -125,7 +125,7 @@ void freePrizeList(prize *head_prizes) {
     }
 }
 
-time_t updatePrizes(WINDOW *my_win, time_t time0){
+time_t updatePrizes(WINDOW *my_win, time_t time0, prize *head_prizes){
     if (clock()-time0 >= 5 && getNumPrizes(head_prizes)<10){
         addPrize(init_prize(my_win), head_prizes);
         return clock();
@@ -136,7 +136,7 @@ time_t updatePrizes(WINDOW *my_win, time_t time0){
 void new_prize (WINDOW *my_win, prize_pos *prize){
     prize_pos aux;
     prize->hp = 1 + (rand() % 5);
-    char placeholder = NULL;
+    char placeholder = 'a';
     while (placeholder != ' '){
         aux.x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
         aux.y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
@@ -164,7 +164,7 @@ prize_pos *init_prize(WINDOW *my_win){
     prize_pos *pr = (prize_pos *) malloc(sizeof(prize_pos));
 
     new_prize(my_win, pr); 
-    draw_prize(my_win, &pr, false);
+    draw_prize(my_win, pr, false);
 
     return pr;
 }

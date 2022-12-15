@@ -2,61 +2,39 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netdb.h>
+#include <sys/un.h>
 #include <unistd.h>
 #include <string.h>
 
+#include "udp.h"
 
-int udp_socket_init(char * address, char * port){
-    struct addrinfo hints,*result;
+int unix_socket_init(char *path){
+    struct sockaddr_un addr;
     int sfd;
 
-    sfd=socket(AF_INET,SOCK_DGRAM,0);   /* Open UDP socket */
+    sfd=socket(AF_UNIX,SOCK_DGRAM,0);   /* Open UDP socket */
     if(sfd == -1){ 
-        perror("");
+        perror("cant create socket on server");
         exit(-1);
     }
 
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET;      /* Allow IPv4 */
-    hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
-    hints.ai_flags = AI_PASSIVE;    /* Receiving */
-    hints.ai_protocol = 0;          /* Any protocol */
-
-    //Get the address info
-    if (getaddrinfo(address, port, &hints, &result) != 0) {
-        perror("");
-        exit(-1);
-    }
+    memset(&addr, 0, sizeof(struct sockaddr_un));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, path, sizeof(addr.sun_path) - 1);
 
     //Bind the socket to the port
-    if (bind(sfd, result->ai_addr, result->ai_addrlen) != 0) {
+    if (bind(sfd, (struct sockaddr *) &addr, sizeof(struct sockaddr_un)) != 0) {
         perror("");
         exit(-1);
     }
-    freeaddrinfo(result);
     
     return sfd;
 }
 
-struct sockaddr getAddr(char *ip, char *port){
-    struct addrinfo hints,*result;
-    struct sockaddr addr;
-
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET;      /* Allow IPv4 */
-    hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
-    hints.ai_protocol = 0;          /* Any protocol */
-
-    //Get the address info
-    if (getaddrinfo(ip, port, &hints, &result) != 0) {
-        perror("");
-        exit(-1);
-    }
-
-    addr = *result->ai_addr;
-    freeaddrinfo(result);
-    
+struct sockaddr_un getAddr(char *path){
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(struct sockaddr_un));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, path, sizeof(addr.sun_path) - 1);
     return addr;
 }
-

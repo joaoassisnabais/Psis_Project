@@ -1,7 +1,10 @@
-#ifndef udp_h
-#define udp_h
+#ifndef UDP_H
+#define UDP_H
 
-int udp_socket_init(char * host, char * port);
-struct sockaddr getAddr(char *ip, char *port);
+#include <sys/un.h>
+
+int unix_socket_init(char *path);
+struct sockaddr_un getAddr(char *path);
+void send_msg(char *msg_txt, struct sockaddr_un servaddr);
 
 #endif

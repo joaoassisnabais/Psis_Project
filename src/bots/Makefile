@@ -1,7 +1,7 @@
 CC := gcc
 TARGET := chase-bots
 FLAGS := -Wall -pedantic
-LIBS :=
+LIBS := -lncurses
 
 C_FILES := $(wildcard *.c) $(wildcard ../common/*.c)
 H_FILES := $(wildcard *.h) $(wildcard ../common/*.h)

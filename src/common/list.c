@@ -13,13 +13,13 @@
 
 /*********************************CLIENTS**********************************/
 
-client * addClient(char *ip_adress, player_position_t *p, client *head_clients) {
+client * addClient(char *address, player_position_t *p, client *head_clients) {
     client *newClient = (client*) malloc(sizeof(client)); 
     if(newClient == NULL) {
         perror("Error allocating memory for new client");
         exit(-1);
     }
-    strcpy(newClient-> ip_adress, ip_adress);
+    strcpy(newClient-> address, address);
     newClient->p = p;
     newClient->next = NULL;
 
@@ -39,7 +39,7 @@ client * addClient(char *ip_adress, player_position_t *p, client *head_clients) 
 }
 
 //remove client from list
-void removeClient(char *ip_adress, client *head_clients) {
+void removeClient(char *address, client *head_clients) {
     client *current = head_clients;
     client *previous = NULL;
 
@@ -48,7 +48,7 @@ void removeClient(char *ip_adress, client *head_clients) {
     }
 
     //runs until it finds the client or the end of the list
-    while (current != NULL && strcmp(current->ip_adress, ip_adress) != 0) { 
+    while (current != NULL && strcmp(current->address, address) != 0) { 
         previous = current;
         current = current->next;
     }
@@ -83,14 +83,14 @@ client *getLastClient(client *head_clients) {
     return current;
 }
 
-client *getClient(char *ip_adress, client *head_clients) {
+client *getClient(char *address, client *head_clients) {
     client *current = head_clients;
 
     if (current == NULL) {
         return NULL;
     }
 
-    while (current != NULL && strcmp(current->ip_adress, ip_adress) != 0) {
+    while (current != NULL && strcmp(current->address, address) != 0) {
         current = current->next;
     }
 
@@ -184,7 +184,7 @@ void addBot(char *ip, client *head_bots, WINDOW *my_win) {
         exit(-1);
     }
 
-    strcpy(newBot->ip_adress, ip);
+    strcpy(newBot->address, ip);
     new_bot_position(p, my_win);
     newBot->p = p;
     newBot->next = NULL;

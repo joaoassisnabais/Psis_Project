@@ -1,7 +1,7 @@
-#include <stddef.h>
-
 #ifndef DEFS_H
 #define DEFS_H
+
+#include <stddef.h>
 
 #define WINDOW_SIZE 20
 #define MSG_TXT_SIZE 1024

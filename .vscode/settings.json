@@ -9,6 +9,7 @@
     "files.associations": {
         "defs.h": "c",
         "stdlib.h": "c",
-        "prizes.h": "c"
+        "prizes.h": "c",
+        "message.h": "c"
     }
 }
