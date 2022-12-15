@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 #ifndef DEFS_H
 #define DEFS_H
 

@@ -1,5 +1,5 @@
-#include "chase.h"
-#include "list.h"
+#include "../common/defs.h"
+#include "../common/message.h"
 
 client *head_clients = NULL;
 client *head_bots = NULL;

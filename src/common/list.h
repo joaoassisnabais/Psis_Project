@@ -1,6 +1,6 @@
 #include "defs.h"
-#include "prizes.h"
 #include "message.h"
+
 #ifndef LIST_H
 #define LIST_H
 
@@ -10,9 +10,6 @@ typedef struct client{
 
     struct client *next;
 } client;
-
-
-
 
 //client *head_clients;
 client * addClient(char *ip_adress, player_position_t *p, client *head_clients);
@@ -24,7 +21,7 @@ array_and_size*getPlayersArray(client *head_clients);
 void freeList(client *head_clients);
 
 //client *head_bots;
-void initBots(int num_bots, char *ip, client *head_bots);
+void initBots(int num_bots, char *ip, client *head_bots, WINDOW *my_win);
 
 //general
 

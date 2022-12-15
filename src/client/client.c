@@ -4,25 +4,25 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
-#include <ncurses.h>
+#include <ncurses.h>    
 #include <string.h>
 
 #include "client.h"
-#include "defs.h"
-#include "udp.h"
-#include "message.h"
+#include "../common/udp.h"
+#include "../common/message.h"
+#include "../common/chase.h"
 
 
 int main(int argc, char **argv ){
     int my_port, serv_port;
     char my_ip[20], serv_ip[20];
 
-    init_window();
+    init_window(my_win, message_win);
     cbreak();				/* Line buffering disabled	*/
 
-    strcpy(&my_ip,argv[1]);
+    strcpy(my_ip,argv[1]);
     sscanf(argv[2], "%d", &my_port);
-    strcpy(&serv_ip,argv[3]);
+    strcpy(serv_ip,argv[3]);
     sscanf(argv[4], "%d", &serv_port);
 
     udp_socket = udp_socket_init(my_ip, my_port);

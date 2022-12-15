@@ -8,18 +8,30 @@
 #include <string.h>
 
 #include "server.h"
-#include "defs.h"
-#include "message.h"
-#include "list.h"
-#include "chase.h"
-#include "prizes.h"
+#include "../common/list.h"
+#include "../common/chase.h"
+#include "../common/prizes.h"
 
+bool isPlayerCol(int x, int y){
+    if(getClientByPos(x, y, head_clients) != NULL) return false;
+    return true;
+}
+
+bool isBotCol(int x, int y){
+    if(getClientByPos(x, y, head_bots) != NULL) return false;
+    return true;
+}
+
+bool isPrizeCol(int x, int y){
+    if(getPrizeByPos(x, y, head_prizes) != NULL) return false;
+    return true;
+}
 
 int main(int argc, char **argv){
     int port;
     char ip[16];
 
-    init_window();
+    init_window(my_win, message_win);
 
     strcpy(ip,argv[1]);
     sscanf(argv[2], "%d", &port);
@@ -144,4 +156,44 @@ bool movePlayer(message *msg, player_position_t *p){
     strcpy(msg->txt, msg_txt);
 
     return true;
+}
+
+void updatePosition(player_position_t *player, int direction){
+    player_position_t aux = *player;
+    bool is_bot, player_collision = false, prize_collision = false, is_empty=true;
+    move_player(&aux, direction);
+
+    if(player->c == '*') is_bot = true;
+    else is_bot = false;
+
+    if(isPlayerCol(aux.x, aux.y) || isPrizeCol(aux.x, aux.y) || isBotCol(aux.x, aux.y)){    /*collision with another player*/
+        is_empty = false;
+    }
+
+    if (is_empty){    /*moves into empty space or the wall*/
+        draw_player(my_win, player, true);
+        player->x = aux.x;
+        player->y = aux.y;
+        draw_player(my_win, player, false);
+
+    }else if((!is_bot) && (isPrizeCol(aux.x, aux.y))){         /*moves into a health pack*/
+        draw_player(my_win, player, true);
+        player->x = aux.x;
+        player->y = aux.y;
+        player->health+=getPrizeByPos(aux.x, aux.y, head_prizes)->pr->hp;
+
+        prize *to_delete = getPrizeByPos(aux.x, aux.y, head_prizes);    /*delete the prize from screen and list*/
+        draw_prize(my_win, to_delete, true);
+        removePrize(to_delete, &head_prizes);
+        
+        draw_player(my_win, player, false);
+
+    }else if(isPlayerCol(aux.x, aux.y)){     /*moves into another player*/
+        if(!is_bot) player->health++;
+        getClientByPos(aux.x, aux.y, head_clients)->p->health--;
+    }
+
+    if(!is_bot && (player->health>MAX_HP)){
+        player->health=MAX_HP;
+    }
 }

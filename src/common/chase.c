@@ -2,12 +2,10 @@
 #include <stdbool.h>
 #include <ncurses.h>
 
-#include "list.h"
 #include "chase.h"
 #include "prizes.h"
+#include "list.h"
 #include "message.h"
-#include "server.h"
-#include "prizes.h"
 
 void render_message(message msg, WINDOW *my_win, WINDOW *message_win){
     int i;
@@ -37,7 +35,7 @@ void render_message(message msg, WINDOW *my_win, WINDOW *message_win){
     wrefresh(message_win);
 }
 
-void init_window(){
+void init_window(WINDOW *my_win, WINDOW *message_win){
     initscr();		        /* Start curses mode */
     keypad(stdscr, TRUE);   /* Enable keyboard mapping */
 	noecho();			    /* Don't echo() while we do getch */
@@ -51,7 +49,7 @@ void init_window(){
 	wrefresh(message_win);
 }
 
-void new_player_position (player_position_t *player){
+void new_player_position (player_position_t *player, WINDOW *my_win){
     player_position_t aux;
     player->c = NULL;
     player->health = MAX_HP;
@@ -65,7 +63,7 @@ void new_player_position (player_position_t *player){
     player->y = aux.y;
 }
 
-void new_bot_position (player_position_t *bot){
+void new_bot_position (player_position_t *bot, WINDOW *my_win){
     player_position_t aux;
     bot->c = '*';
     bot->health = 99999;
@@ -120,50 +118,11 @@ void move_player (player_position_t * player, int direction){
 
 }
 
-void updatePosition(player_position_t *player, int direction){
-    player_position_t aux = *player;
-    bool is_bot;
-    move_player(&aux, direction);
-
-    if(player->c == '*') is_bot = true;
-    else is_bot = false;
-
-    char placeholder = mvwinch(my_win, aux.y, aux.x);
-    if (placeholder == ' ' || placeholder == player->c){    /*moves into empty space or the wall*/
-        draw_player(my_win, player, true);
-        player->x = aux.x;
-        player->y = aux.y;
-        draw_player(my_win, player, false);
-
-    }else if((!is_bot) && (placeholder<='5' && placeholder>='1')){         /*moves into a health pack*/
-        draw_player(my_win, player, true);
-        player->x = aux.x;
-        player->y = aux.y;
-        player->health+=placeholder-'0';
-
-        prize *to_delete = getPrizeByPos(aux.x, aux.y, head_prizes);    /*delete the prize from screen and list*/
-        draw_prize(my_win, to_delete, true);
-        removePrize(to_delete, &head_prizes);
-        
-        draw_player(my_win, player, false);
-
-    }else if(placeholder=='A' || placeholder=='B' || placeholder=='C' || placeholder=='D' || placeholder=='E' ||
-             placeholder=='F' || placeholder=='G' || placeholder=='H' || placeholder=='I' || placeholder=='J'){     /*moves into another player*/
-        if(!is_bot) player->health++;
-        getClientByChar(placeholder, head_clients)->p->health--;
-    }
-
-    if(!is_bot && (player->health>MAX_HP)){
-        player->health=MAX_HP;
-    }
-}
-
-
 player_position_t *init_client(WINDOW *my_win){
 
     player_position_t *p = (player_position_t *) malloc(sizeof(player_position_t));
 
-    new_player_position(p); 
+    new_player_position(p, my_win); 
     draw_player(my_win, &p, false);
 
     return p;

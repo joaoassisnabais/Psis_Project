@@ -7,10 +7,6 @@
 #include <string.h>
 
 #include "bots.h"
-#include "defs.h"
-#include "udp.h"
-#include "message.h"
-
 
 int main(int argc, char **argv ){
     int my_port, serv_port;

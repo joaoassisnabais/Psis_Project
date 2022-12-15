@@ -1,3 +1,6 @@
+#include "defs.h"
+#include "message.h"
+
 #ifndef PRIZES_H
 #define PRIZES_H
 

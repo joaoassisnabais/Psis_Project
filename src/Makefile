@@ -7,7 +7,7 @@ SERVER_TARGET := $(SERVER_FOLDER)/chase-server
 BOT_FOLDER := ./bots
 BOT_TARGET := $(BOT_FOLDER)/chase-bots
 
-all: $(CLIENT_TARGET) $(SERVER_TARGET) $(BOT_TARGET)
+all: $(SERVER_TARGET) $(CLIENT_TARGET) $(BOT_TARGET)
 
 client: $(CLIENT_TARGET)
 $(CLIENT_TARGET):
@@ -22,9 +22,9 @@ $(BOT_TARGET):
 	make -C $(BOT_FOLDER)/
 
 clean:
-	make clean-client
-	make clean-server
 	make clean-bots
+	make clean-server
+	make clean-client
 
 clean-client:
 	make -C $(CLIENT_FOLDER) clean
