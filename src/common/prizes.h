@@ -14,7 +14,6 @@ typedef struct prize_pos{
 
 typedef struct prize{
     prize_pos *pr;
-
     struct prize *next;
 } prize;
 
@@ -31,9 +30,7 @@ array_and_size_prizes *getPrizesArray(prize *head_prizes);
 void freePrizeList(prize *head_prizes);
 int getNumPrizes(prize *head_prizes);
 
-void new_prize (WINDOW *my_win, prize_pos *prize);
 void draw_prize(WINDOW *my_win, prize_pos *prize, bool delete);
-prize_pos *init_prize(WINDOW *my_win);
 time_t updatePrizes(WINDOW *my_win, time_t time0, prize *head_prizes);
 
 #endif

@@ -47,6 +47,7 @@ void client_loop(struct sockaddr_un serv_addr){
         key = wgetch(my_win);
 
         if (key == KEY_LEFT || key == KEY_RIGHT || key == KEY_UP || key == KEY_DOWN){
+            wprintw(my_win, "key: %d\n", key);
             sprintf(msg, "move %d", key);
             send_msg(msg, serv_addr);
             receive(my_player);

@@ -1,6 +1,6 @@
 CC := gcc
 TARGET := chase-server
-FLAGS := -Wall -pedantic
+FLAGS := -Wall -pedantic -g
 LIBS := -lncurses
 
 C_FILES := $(wildcard *.c) $(wildcard ../common/*.c)

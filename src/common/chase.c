@@ -49,34 +49,6 @@ void init_window(WINDOW *my_win, WINDOW *message_win){
 	wrefresh(message_win);
 }
 
-void new_player_position (player_position_t *player, WINDOW *my_win){
-    player_position_t aux;
-    player->health = MAX_HP;
-    char placeholder = 'a';
-    while (placeholder != ' '){
-        aux.x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
-        aux.y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
-        placeholder = mvwinch(my_win, aux.y, aux.x);
-    }
-    player->x = aux.x;
-    player->y = aux.y;
-}
-
-void new_bot_position (player_position_t *bot, WINDOW *my_win){
-    player_position_t aux;
-    bot->c = '*';
-    bot->health = 99999;
-    char placeholder = 'a';
-    while (placeholder != ' '){
-        aux.x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
-        aux.y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
-        placeholder = mvwinch(my_win, aux.y, aux.x);
-    }
-    bot->x = aux.x;
-    bot->y = aux.y;
-}
-
-
 void draw_player(WINDOW *win, player_position_t * player, bool delete){
     int ch;
     if(delete){
@@ -115,16 +87,6 @@ void move_player (player_position_t * player, int direction){
             player->x ++;
     }
 
-}
-
-player_position_t *init_client(WINDOW *my_win){
-
-    player_position_t *p = (player_position_t *) malloc(sizeof(player_position_t));
-
-    new_player_position(p, my_win); 
-    draw_player(my_win, p, false);
-
-    return p;
 }
 
 

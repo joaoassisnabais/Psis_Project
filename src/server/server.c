@@ -16,24 +16,29 @@
 
 #define SOCK_PATH "/tmp/server_socket.sock"
 
-bool isPlayerCol(int x, int y){
-    if(getClientByPos(x, y, head_clients) != NULL) return false;
-    return true;
-}
-
-bool isBotCol(int x, int y){
-    if(getClientByPos(x, y, head_bots) != NULL) return false;
-    return true;
-}
-
-bool isPrizeCol(int x, int y){
-    if(getPrizeByPos(x, y, head_prizes) != NULL) return false;
-    return true;
-}
-
 void updatePosition(player_position_t *player, int direction){
     player_position_t aux = *player;
-    bool is_bot, is_empty=true;
+    bool is_bot, is_empty=trvoid new_prize (WINDOW *my_win, prize_pos *prize){
+    prize_pos aux;
+    prize->hp = 1 + (rand() % 5);
+    bool is_empty = false;
+    while (!is_empty){
+        aux.x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
+        aux.y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
+        is_empty = isEmpty(aux.x, aux.y);
+    }
+    prize->x = aux.x;
+    prize->y = aux.y;
+}
+
+prize_pos *init_prize(WINDOW *my_win){
+    prize_pos *pr = (prize_pos *) malloc(sizeof(prize_pos));
+
+    new_prize(my_win, pr); 
+    draw_prize(my_win, pr, false);
+
+    return pr;
+}ue;
     move_player(&aux, direction);
 
     if(player->c == '*') is_bot = true;

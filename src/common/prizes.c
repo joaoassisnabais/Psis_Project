@@ -133,19 +133,6 @@ time_t updatePrizes(WINDOW *my_win, time_t time0, prize *head_prizes){
     return time0;
 }
 
-void new_prize (WINDOW *my_win, prize_pos *prize){
-    prize_pos aux;
-    prize->hp = 1 + (rand() % 5);
-    char placeholder = 'a';
-    while (placeholder != ' '){
-        aux.x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
-        aux.y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
-        placeholder = mvwinch(my_win, aux.y, aux.x);
-    }
-    prize->x = aux.x;
-    prize->y = aux.y;
-}
-
 void draw_prize(WINDOW *my_win, prize_pos *prize, bool delete){
     int hp;
     if(delete){
@@ -158,13 +145,4 @@ void draw_prize(WINDOW *my_win, prize_pos *prize, bool delete){
     wmove(my_win, p_y, p_x);
     waddch(my_win, hp);
     wrefresh(my_win);
-}
-
-prize_pos *init_prize(WINDOW *my_win){
-    prize_pos *pr = (prize_pos *) malloc(sizeof(prize_pos));
-
-    new_prize(my_win, pr); 
-    draw_prize(my_win, pr, false);
-
-    return pr;
 }
