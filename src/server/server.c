@@ -7,8 +7,8 @@
 #include <unistd.h>
 #include <ncurses.h>
 #include <string.h>
+#include <stdbool.h>
 
-#include "server.h"
 #include "entity.h"
 #include "../common/chase_internal.h"
 #include "../common/chase_frontend.h"
@@ -24,6 +24,29 @@ game state;
 screen game_screen;
 int dgram_socket;
 bool no_reply=false;
+
+void move_player (player_position_t * player, dir direction){    
+    if (direction == DIR_UP){        
+        if (player->y != 1){            
+            player->y--;        
+        }    
+    }    
+    if (direction == DIR_DOWN){        
+        if (player->y  != WINDOW_SIZE-2){
+            player->y ++;        
+        }    
+    }        
+    if (direction == DIR_LEFT){        
+        if (player->x  != 1){            
+            player->x --;        
+        }    
+    }    
+    if (direction == DIR_RIGHT) {
+        if (player->x  != WINDOW_SIZE-2){            
+            player->x ++;    
+        } 
+    }
+}
 
 void updatePosition(player_position_t *player, dir direction){
     player_position_t aux = *player;
@@ -57,55 +80,65 @@ void updatePosition(player_position_t *player, dir direction){
     }
 }
 
-void moveBots(message msg){
-    dir direction[10], i=-1;
-    char *token;
+void moveBots(dir *directions){
+    for(int i=0; i<state.num_bots; i++){
+        updatePosition(&state.bots[i], directions[i]);
+    }
+}
 
-    token = strtok(msg.txt, " ");
+void parseBotDirections(message *msg) {
+    char *token;
+    int i=-1;
+    dir directions[10];
+
+    token = strtok(msg->txt, " ");
     token = strtok(NULL, " ");
     while( token != NULL ){
         i++;
-        direction[i] = atoi(token);
+        directions[i] = atoi(token);
         token = strtok(NULL, " ");
     }
 
-    for(i=0; i<state.num_bots; i++){
-        updatePosition(&state.bots[i], direction[i]);
-    }
+    moveBots(directions);
 }
 
-
-void movePlayer(message *msg, player_position_t *p){
-    int move_key;
+bool updatePlayer(player_position_t *p, dir direction){
     if(p->health <= 0){ /* Healt_0 check */
-        rmPlayer(&state, p);
-        create_message(&msg, "dead", &state);
+        return false;
     }else{
-        sscanf(msg->txt, "%*s %d", &move_key);   /* Get the movement key */
-        updatePosition(p, move_key);
-        create_message(msg, "field_status", &state);
+        updatePosition(p, direction);
+        return true;
     }
 }
 
-void write_ball_info(char **buffer) {
-    sprintf(*buffer, "ball_info %d %d %c", state.players[state.num_players-1].x, state.players[state.num_players-1].y, state.players[state.num_players-1].c);
+void write_ball_info(char *buffer) {
+    sprintf(buffer, "ball_info %d %d %c", state.players[state.num_players-1].x, state.players[state.num_players-1].y, state.players[state.num_players-1].c);
 }
 
-void runProcesses(message *msg, char *address){
+void parseMessage(message *msg, char *address){
         char command[16];
         char buffer[100];
         sscanf(msg->txt, "%s", command);
 
         if (strcmp(command, "connect") == 0) {  /* Connect */
             addPlayer(&state, address);
-            write_ball_info(&buffer);
+            write_ball_info(buffer);
             create_message(msg, buffer, &state);
 
         } else if (strcmp(command, "move") == 0) { /* Move */
-            movePlayer(msg, getClientByAddr(address, state));
+            dir direction;
+            sscanf(msg->txt, "%*s %d", (int *) &direction);   /* Get the movement key */
+            player_position_t *pos = getPlayerByAddr(address, &state);
+            if (updatePlayer(pos, direction)) {
+                create_message(msg, "field_status", &state);
+
+            } else {
+                rmPlayer(&state, pos);
+                create_message(msg, "dead", &state);
+            }
 
         } else if (strcmp(command, "disconnect") == 0) { /* Disconnect */
-            rmPlayerbyAddr(&state, address);
+            rmPlayerByAddr(&state, address);
             no_reply = true;
 
         } else if (strcmp(command, "bot_connect") == 0) { /* bot connect */
@@ -113,7 +146,7 @@ void runProcesses(message *msg, char *address){
             no_reply = true;
 
         }else if (strcmp(command, "bot_move") == 0){    /* bot move */
-            moveBots(*msg);
+            parseBotDirections(msg);
             no_reply = true;
         
         } else { /* Not a valid command */
@@ -139,7 +172,7 @@ void serverLoop(){
             exit(-1);
         }; 
 
-        runProcesses(&msg, clientAddr.sun_path);    /* Update game variables */
+        parseMessage(&msg, clientAddr.sun_path);    /* Update game variables */
 
         if(!no_reply){      /* If the client is disconnected, the message isn't listed or the message came from a bot, don't send anything */
             if (sendto(dgram_socket, &msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, clientAddrLen) != sizeof(msg) ){
@@ -152,7 +185,7 @@ void serverLoop(){
     unlink(address);
 }
 
-initGame(){
+void initGame(){
     state.num_bots=0;
     state.num_players=0;
     state.num_prizes=0;

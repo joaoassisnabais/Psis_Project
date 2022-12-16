@@ -3,28 +3,18 @@
 
 #include <stdbool.h>
 #include <time.h>
-#include <ncurses.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "../common/chase_internal.h"
 
 char bot_address[108]; 
+char player_address[10][108];
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <ncurses.h>
-#include <string.h>
 
 #include "../common/defs.h"
 #include "../common/chase_internal.h"
-#include "entity.h"
 
-char bot_address[108];
-char player_address[10][108];
 
 player_position_t *getClientByPos(int x, int y, game *state);
 bool isPlayerCol(int x, int y, game *state);

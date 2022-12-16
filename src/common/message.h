@@ -9,6 +9,6 @@ typedef struct message{
     game state;
 } message;
 
-void create_message(message **msg, char *msg_txt, game *state);
+void create_message(message *msg, char *msg_txt, game *state);
 
 #endif
