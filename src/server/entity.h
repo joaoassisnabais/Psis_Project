@@ -40,8 +40,8 @@ prize_pos new_prize(game *state);
 void addPrize(game *state);
 void initPrizes(game *state, int num_prizes);
 time_t updatePrizes(time_t time0, game *state);
-player_position_t *getPlayerbyAddr(char *address, game *state);
-prize_pos getPrizebyPos(int x, int y, game *state);
-void rmPrizebyPos(int x, int y, game *state);
-void rmPlayerbyAddr(game *state, char *address);
+player_position_t *getPlayerByAddr(char *address, game *state);
+prize_pos getPrizeByPos(int x, int y, game *state);
+void rmPrizeByPos(int x, int y, game *state);
+void rmPlayerByAddr(game *state, char *address);
 #endif

@@ -25,7 +25,7 @@ screen game_screen;
 int dgram_socket;
 bool no_reply=false;
 
-void updatePosition(player_position_t *player, int direction){
+void updatePosition(player_position_t *player, dir direction){
     player_position_t aux = *player;
     bool is_bot, is_empty;
     move_player(&aux, direction);
@@ -44,7 +44,7 @@ void updatePosition(player_position_t *player, int direction){
         player->x = aux.x;
         player->y = aux.y;
         player->health += getPrizeByPos(aux.x, aux.y, &state).hp;
-        rmPrizebyPos(aux.x, aux.y, &state);
+        rmPrizeByPos(aux.x, aux.y, &state);
 
 
     }else if(isPlayerCol(aux.x, aux.y, &state)){     /*moves into another player*/
@@ -58,7 +58,7 @@ void updatePosition(player_position_t *player, int direction){
 }
 
 void moveBots(message msg){
-    int direction[10], i=-1;
+    dir direction[10], i=-1;
     char *token;
 
     token = strtok(msg.txt, " ");
@@ -67,17 +67,6 @@ void moveBots(message msg){
         i++;
         direction[i] = atoi(token);
         token = strtok(NULL, " ");
-    }
-    for (int i = 0; i < 10; i++){ 
-        if (direction[i] == 0){
-            direction[i] = KEY_UP;
-        }else if (direction[i] == 1){
-            direction[i] = KEY_RIGHT;
-        }else if (direction[i] == 2){
-            direction[i] = KEY_DOWN;
-        }else if (direction[i] == 3){
-            direction[i] = KEY_LEFT;
-        }
     }
 
     for(i=0; i<state.num_bots; i++){
@@ -90,7 +79,7 @@ void movePlayer(message *msg, player_position_t *p){
     int move_key;
     if(p->health <= 0){ /* Healt_0 check */
         rmPlayer(&state, p);
-        create_message(msg, "dead", &state);
+        create_message(&msg, "dead", &state);
     }else{
         sscanf(msg->txt, "%*s %d", &move_key);   /* Get the movement key */
         updatePosition(p, move_key);

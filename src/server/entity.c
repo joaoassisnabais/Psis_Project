@@ -132,14 +132,14 @@ time_t updatePrizes(time_t time0, game *state){
     return time0;
 }
 
-player_position_t *getPlayerbyAddr(char *address, game *state){
+player_position_t *getPlayerByAddr(char *address, game *state){
     for(int i=0; i<state->num_players; i++){
         if(strcmp(player_address[i], address) == 0) return &state->players[i];
     }
     return NULL;
 }
 
-prize_pos getPrizebyPos(int x, int y, game *state){
+prize_pos getPrizeByPos(int x, int y, game *state){
     for(int i=0; i<state->num_prizes; i++){
         if(state->prizes[i].x == x && state->prizes[i].y == y) return state->prizes[i];
     }
@@ -148,7 +148,7 @@ prize_pos getPrizebyPos(int x, int y, game *state){
     return aux;
 }
 
-void rmPrizebyPos(int x, int y, game *state){
+void rmPrizeByPos(int x, int y, game *state){
     for(int i=0; i<state->num_prizes; i++){
         if(state->prizes[i].x == x && state->prizes[i].y == y){
             for(int j=i; j<state->num_prizes-1; j++){
@@ -160,7 +160,7 @@ void rmPrizebyPos(int x, int y, game *state){
     }
 }
 
-void rmPlayerbyAddr(game *state, char *address){
+void rmPlayerByAddr(game *state, char *address){
     for(int i=0; i<state->num_players; i++){
         if(strcmp(player_address[i], address) == 0){
             for(int j=i; j<state->num_players-1; j++){

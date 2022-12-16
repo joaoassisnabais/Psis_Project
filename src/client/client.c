@@ -73,6 +73,21 @@ void receive(){ // Receive a message, parse it and update state
     }
 }
 
+dir key_to_dir(int key) {
+    switch (key) {
+        case KEY_LEFT:
+            return DIR_LEFT;
+        case KEY_RIGHT:
+            return DIR_RIGHT;
+        case KEY_UP:
+            return DIR_UP;
+        case KEY_DOWN:
+            return DIR_DOWN;
+        default:
+            return DIR_NONE;
+    }
+}
+
 //create client_loop that opens a udp socket and sends a connect message to the server and then implements a while that allows the user to move the player and sends the new position to the server unless the user presses q to quit or esc
 void client_loop(struct sockaddr_un serv_addr){
     char msg[100];
@@ -84,9 +99,11 @@ void client_loop(struct sockaddr_un serv_addr){
     while(key != 'q' && key != 27){
         key = wgetch(game_screen.game_window);
 
-        if (key == KEY_LEFT || key == KEY_RIGHT || key == KEY_UP || key == KEY_DOWN){
+        dir direction = key_to_dir(key);
+
+        if (direction != DIR_NONE) {
             wprintw(game_screen.game_window, "key: %d\n", key);
-            sprintf(msg, "move %d", key);
+            sprintf(msg, "move %d", direction);
             send_msg(msg, serv_addr);
             receive();
         }
