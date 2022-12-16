@@ -36,7 +36,7 @@ void client_loop(struct sockaddr_un serv_addr){
     char msg[100];
 
     player_position_t *my_player;
-    my_player = init_client(my_win);
+    my_player = (player_position_t*) malloc(sizeof(player_position_t));
     
     sprintf(msg, "connect");
     send_msg(msg, serv_addr);

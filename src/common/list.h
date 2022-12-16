@@ -21,10 +21,5 @@ client *getClientByPos(int x, int y, client *head_clients);
 array_and_size*getPlayersArray(client *head_clients);
 void freeList(client *head_clients);
 
-//client *head_bots;
-void initBots(int num_bots, char *ip, client *head_bots, WINDOW *my_win);
-void addBot(char *ip, client *head_bots, WINDOW *my_win);
-
-//general
 
 #endif
