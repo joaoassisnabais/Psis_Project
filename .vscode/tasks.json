@@ -7,7 +7,7 @@
             "args": [
             ],
             "options": {
-                "cwd": "${fileDirname}/src/client"
+                "cwd": "${fileDirname}/src/server"
             },
             "problemMatcher": [
                 "$gcc"
