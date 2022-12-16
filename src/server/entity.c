@@ -12,7 +12,7 @@
 #include "../common/chase_internal.h"
 #include "entity.h"
 
-static char bot_address[108]; 
+static char bot_address[108];
 static char player_address[10][108];
 
 player_position_t *getClientByPos(int x, int y, game *state){
@@ -30,6 +30,13 @@ bool isPlayerCol(int x, int y, game *state){
     return false;
 }
 
+bool isBotCol(int x, int y, game *state){
+    for(int i=0; i<state->num_bots; i++){
+        if(state->bots[i].x == x && state->bots[i].y == y) return true;
+    }
+    return false;
+}
+
 bool isPrizeCol(int x, int y, game *state){
     for(int i=0; i<state->num_prizes; i++){
         if(state->prizes[i].x == x && state->prizes[i].y == y) return true;
@@ -39,7 +46,7 @@ bool isPrizeCol(int x, int y, game *state){
 
 
 bool isEmpty(int x, int y, game *state){
-    if(isPlayerCol(x, y, state) || isPlayerCol(x, y, state) || isPrizeCol(x, y, state)){
+    if(isPlayerCol(x, y, state) || isBotCol(x, y, state) || isPrizeCol(x, y, state)){
         return false;
     }
     return true;
@@ -128,9 +135,9 @@ void initPrizes(game *state, int num_prizes){
 }
 
 time_t updatePrizes(time_t time0, game *state){
-    if (clock()-time0 >= 5 && state->num_prizes<10){
+    if (time(NULL)-time0 >= 5 && state->num_prizes<10){
         addPrize(state);
-        return clock();
+        return time(NULL);
     }
     return time0;
 }
@@ -166,7 +173,7 @@ void rmPrizeByPos(int x, int y, game *state){
 void rmPlayerByAddr(game *state, char *address){
     for(int i=0; i<state->num_players; i++){
         if(strcmp(player_address[i], address) == 0){
-            for(int j=i; j<state->num_players-1; j++){
+            for(int j=i; j<state->num_players; j++){
                 state->players[j] = state->players[j+1];
                 strcpy(player_address[j], player_address[j+1]);
             }
@@ -174,4 +181,25 @@ void rmPlayerByAddr(game *state, char *address){
             return;
         }
     }
+}
+
+bool BotIsOn(){
+    if (bot_address[0] == '\0') return false;
+    else return true;
+}
+
+bool BotAuth(char *address){
+    if(strcmp(address, bot_address) == 0) return true;
+    return false;
+}
+
+bool PlayerAuth(char *address, game *state){
+    for(int i=0; i<state->num_players; i++){
+        if(strcmp(address, player_address[i]) == 0) return true;
+    }
+    return false;
+}
+
+void initBotAddr(){
+    bot_address[0] = '\0';
 }

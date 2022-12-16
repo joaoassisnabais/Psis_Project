@@ -3,18 +3,36 @@
 
 void render(screen game_screen, game *game_state) {
     wclear(game_screen.game_window);
-    wclear(game_screen.message_window);
+    box(game_screen.game_window, 0 , 0);
 
+    wclear(game_screen.message_window);
+    box(game_screen.message_window, 0 , 0);
+
+    //print players
     for(int i = 0; i < game_state->num_players; i++){
-        mvwprintw(game_screen.game_window, game_state->players[i].y, game_state->players[i].x, "%c", game_state->players[i].c);
-    }
+        if(game_state->players[i].health>0){  
+            wmove(game_screen.game_window, game_state->players[i].y, game_state->players[i].x);
+            waddch(game_screen.game_window, game_state->players[i].c);
+        }
+    }   
     //print bots
     for(int i = 0; i < game_state->num_bots; i++){
-        mvwprintw(game_screen.game_window, game_state->bots[i].y, game_state->bots[i].x, "%c", game_state->bots[i].c);
+        wmove(game_screen.game_window, game_state->bots[i].y, game_state->bots[i].x);
+        waddch(game_screen.game_window, game_state->bots[i].c);
     }
     //print prizes
     for(int i = 0; i < game_state->num_prizes; i++){
-        mvwprintw(game_screen.game_window, game_state->prizes[i].y, game_state->prizes[i].x, "%c", game_state->prizes[i].hp);
+        wmove(game_screen.game_window, game_state->prizes[i].y, game_state->prizes[i].x);
+        waddch(game_screen.game_window, game_state->prizes[i].hp + '0');
+    }
+
+    //print players char and health to message window
+    for(int i = 0; i < game_state->num_players; i++){
+        if(game_state->players[i].health>0){  
+            wmove(game_screen.message_window, i+1, 1);
+            waddch(game_screen.message_window, game_state->players[i].c);
+            wprintw(game_screen.message_window, " %d", game_state->players[i].health);
+        }
     }
 
     wrefresh(game_screen.game_window);
@@ -30,7 +48,14 @@ void init_window(screen *game_screen){
     box(game_screen->game_window, 0 , 0);	
 	wrefresh(game_screen->game_window);
 
-    game_screen->message_window = newwin(5, WINDOW_SIZE, WINDOW_SIZE, 0);
+    game_screen->message_window = newwin(14, WINDOW_SIZE, 0, WINDOW_SIZE);
     box(game_screen->message_window, 0 , 0);	
 	wrefresh(game_screen->message_window);
 }
+
+void kill_window(screen *game_screen){
+    delwin(game_screen->game_window);
+    delwin(game_screen->message_window);
+    endwin();
+}
+

@@ -1,11 +1,12 @@
 {
     "configurations": [
+        
         {
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/src/server/chase-server",
-            "args": [],
+            "program": "${workspaceFolder}/src/client/chase-client",
+            "args": ["/tmp/server_socket.sock"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

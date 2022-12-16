@@ -12,6 +12,7 @@
 #include "../common/chase_frontend.h"
 
 int dgram_socket;
+bool serv_full=false;
 game game_state;
 screen game_screen = {NULL, NULL};
 player_position_t player;
@@ -70,6 +71,8 @@ void receive(){ // Receive a message, parse it and update state
         parse_field_status(&msg);
     }else if(strcmp(command, "dead") == 0){
         parse_dead(&msg);
+    }else if (strcmp(command, "full") == 0) {
+        serv_full = true;
     }
 }
 
@@ -94,10 +97,11 @@ void client_loop(struct sockaddr_un serv_addr){
     
     send_msg("connect", serv_addr);
     receive();
+    if (serv_full) return;
 
     int key=-1;
     while(key != 'q' && key != 27){
-        key = wgetch(game_screen.game_window);
+        key = getch();
 
         dir direction = key_to_dir(key);
 
@@ -110,18 +114,17 @@ void client_loop(struct sockaddr_un serv_addr){
 
         render(game_screen, &game_state);
 
-        if(player.health == 0){
+        if(player.health <= 0){
             break;
         }
     }
-
-    send_msg("disconnect", serv_addr);
+    if(key == 'q' || key == 27) send_msg("disconnect", serv_addr);
 }
 
 int main(int argc, char **argv ){;
     if (argc < 2) {
-        printf("Please specify the server address\n");
-        return 0;
+        printf("Usage: ./chase-client <server_address>\n");
+        exit(0);
     }
 
     char client_addr[108];
@@ -133,7 +136,9 @@ int main(int argc, char **argv ){;
     dgram_socket = unix_socket_init(client_addr);
 
     client_loop(get_addr(argv[1]));
-    
+
+    kill_window(&game_screen);
     unlink(client_addr);
+    printf("\nKicked out!\n");
     exit(0);
 }

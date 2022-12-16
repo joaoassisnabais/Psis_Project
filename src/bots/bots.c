@@ -41,7 +41,7 @@ void bot_loop(struct sockaddr_un serv_addr){
     send_msg(msg, serv_addr);
 
     while(1){
-        for(int i = 0; i < num_bots; i=i+2){
+        for(int i = 0; i < num_bots*2; i=i+2){
             bot_array[i] = rand() % 4 + '0';
             bot_array[i+1] = ' ';
         }
@@ -56,6 +56,11 @@ void bot_loop(struct sockaddr_un serv_addr){
 
 int main(int argc, char **argv ){
     char bot_addr[108];
+    
+    if(argc != 3){
+        printf("Usage: ./chase-bots <server address> <number of bots>\n");
+        exit(0);
+    }
 
     sscanf(argv[2], "%d", &num_bots);
 

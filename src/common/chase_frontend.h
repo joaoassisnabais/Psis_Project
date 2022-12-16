@@ -10,5 +10,6 @@ typedef struct {
 
 void init_window(screen *game_screen);
 void render(screen game_screen, game *state);
+void kill_window(screen *game_screen);
 
 #endif

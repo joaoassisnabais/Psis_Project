@@ -8,6 +8,7 @@
 #include <ncurses.h>
 #include <string.h>
 #include <stdbool.h>
+#include <errno.h>
 
 #include "entity.h"
 #include "../common/chase_internal.h"
@@ -18,6 +19,8 @@
 
 #define SOCK_PATH "/tmp/server_socket.sock"
 #define INIT_PRIZES 5
+#define MAX_PLAYERS 10
+#define MAX_BOTS 10
 
 
 game state;
@@ -51,13 +54,17 @@ void move_player (player_position_t * player, dir direction){
 void updatePosition(player_position_t *player, dir direction){
     player_position_t aux = *player;
     bool is_bot, is_empty;
-    move_player(&aux, direction);
 
+    move_player(&aux, direction);
+        is_empty=isEmpty(aux.x, aux.y, &state);
+    
+    if(isPlayerCol(aux.x, aux.y, &state)){
+        if(getClientByPos(aux.x, aux.y, &state)->health<=0){
+            is_empty=true;
+        }
+    }
     if(player->c == '*') is_bot = true;
     else is_bot = false;
-
-    if(isEmpty(aux.x, aux.y, &state)) is_empty = true;
-    else is_empty = false;
 
     if (is_empty){    /*moves into empty space or the wall*/
         player->x = aux.x;
@@ -70,7 +77,7 @@ void updatePosition(player_position_t *player, dir direction){
         rmPrizeByPos(aux.x, aux.y, &state);
 
 
-    }else if(isPlayerCol(aux.x, aux.y, &state)){     /*moves into another player*/
+    }else if(isPlayerCol(aux.x, aux.y, &state) && getClientByPos(aux.x, aux.y, &state)->health>0){     /*moves into another player*/
         if(!is_bot) player->health++;
         getClientByPos(aux.x, aux.y, &state)->health-=1;
     }
@@ -121,11 +128,20 @@ void parseMessage(message *msg, char *address){
         sscanf(msg->txt, "%s", command);
 
         if (strcmp(command, "connect") == 0) {  /* Connect */
-            addPlayer(&state, address);
-            write_ball_info(buffer);
-            create_message(msg, buffer, &state);
+            if(state.num_players >= MAX_PLAYERS){
+                create_message(msg, "full", &state);
+            }
+            else{
+                addPlayer(&state, address);
+                write_ball_info(buffer);
+                create_message(msg, buffer, &state);
+            }
 
         } else if (strcmp(command, "move") == 0) { /* Move */
+            if(PlayerAuth(address, &state) == false){
+                no_reply = true;
+                return;
+            }
             dir direction;
             sscanf(msg->txt, "%*s %d", (int *) &direction);   /* Get the movement key */
             player_position_t *pos = getPlayerByAddr(address, &state);
@@ -138,14 +154,26 @@ void parseMessage(message *msg, char *address){
             }
 
         } else if (strcmp(command, "disconnect") == 0) { /* Disconnect */
+            if(PlayerAuth(address, &state) == false){
+                no_reply = true;
+                return;
+            }
             rmPlayerByAddr(&state, address);
             no_reply = true;
 
         } else if (strcmp(command, "bot_connect") == 0) { /* bot connect */
+            if(BotIsOn() || msg->state.num_bots > MAX_BOTS){
+                no_reply=true;
+                return;
+            }
             initBots(msg->state.num_bots, address, &state);
             no_reply = true;
 
         }else if (strcmp(command, "bot_move") == 0){    /* bot move */
+            if(BotAuth(address) == false){
+                no_reply = true;
+                return;
+            }
             parseBotDirections(msg);
             no_reply = true;
         
@@ -162,9 +190,10 @@ void serverLoop(){
     socklen_t clientAddrLen = sizeof(clientAddr);
 
     initPrizes(&state, INIT_PRIZES);
-    time_t time0 = clock();
+    time_t time0 = time(NULL);
     while (1)
     {
+        clientAddrLen = sizeof(clientAddr);
         time0 = updatePrizes(time0, &state);    /*checking if a new prize can be spawned*/
         
         if(recvfrom(dgram_socket, &msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, &clientAddrLen) == -1){    /* Receive message */
@@ -174,11 +203,15 @@ void serverLoop(){
 
         parseMessage(&msg, clientAddr.sun_path);    /* Update game variables */
 
+        //checjkar o que esta a dar de errado no remove
+
         if(!no_reply){      /* If the client is disconnected, the message isn't listed or the message came from a bot, don't send anything */
-            if (sendto(dgram_socket, &msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, clientAddrLen) != sizeof(msg) ){
+            if (sendto(dgram_socket, &msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, clientAddrLen) == -1){
                 perror("Full message wasn't sent");
                 exit(-1);
             }
+        }else{
+            no_reply=false;
         }
         render(game_screen, &state);
     }
@@ -196,11 +229,12 @@ int main(int argc, char **argv){
 
     init_window(&game_screen);
     initGame();
+    initBotAddr();
 
-    //strcpy(address,argv[1]);
-    strcpy(address,SOCK_PATH);
+    if(argc==2) strcpy(address,argv[1]);
+    else strcpy(address,SOCK_PATH);
     dgram_socket = unix_socket_init(address);
     serverLoop();
-    
+
     exit(0);
 }

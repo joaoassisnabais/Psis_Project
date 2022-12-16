@@ -27,4 +27,9 @@ player_position_t *getPlayerByAddr(char *address, game *state);
 prize_pos getPrizeByPos(int x, int y, game *state);
 void rmPrizeByPos(int x, int y, game *state);
 void rmPlayerByAddr(game *state, char *address);
+bool BotIsOn();
+bool BotAuth(char *address);
+bool PlayerAuth(char *address, game *state);
+void initBotAddr();
+
 #endif
