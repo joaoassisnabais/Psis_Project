@@ -75,21 +75,3 @@ void new_prize (WINDOW *my_win, prize_pos *prize, client *head_clients, client *
     prize->y = aux.y;
 }
 
-prize_pos *init_prize(WINDOW *my_win){
-    prize_pos *pr = (prize_pos *) malloc(sizeof(prize_pos));
-
-    new_prize(my_win, pr, NULL, NULL, NULL); 
-    draw_prize(my_win, pr, false);
-
-    return pr;
-}
-
-player_position_t *init_client(WINDOW *my_win){
-
-    player_position_t *p = (player_position_t *) malloc(sizeof(player_position_t));
-
-    new_player_position(p, my_win); 
-    draw_player(my_win, p, false);
-
-    return p;
-}

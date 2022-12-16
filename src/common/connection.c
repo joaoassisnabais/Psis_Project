@@ -1,18 +1,23 @@
 #include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/socket.h>
+#include <stdio.h>
 #include <unistd.h>
-#include <string.h>
+#include "connection.h"
 
-#include "udp.h"
+struct sockaddr_un get_addr(char *path){
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(struct sockaddr_un));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, path, sizeof(addr.sun_path) - 1);
+    return addr;
+}
 
-int unix_socket_init(char *path){
+int unix_socket_init(const char *path){
     struct sockaddr_un addr;
     int sfd;
 
-    sfd=socket(AF_UNIX,SOCK_DGRAM,0);   /* Open UDP socket */
+    sfd=socket(AF_UNIX,SOCK_DGRAM,0); // Open datagram socket
     if(sfd == -1){ 
         perror("cant create socket on server");
         exit(-1);
@@ -34,12 +39,4 @@ int unix_socket_init(char *path){
     }
     
     return sfd;
-}
-
-struct sockaddr_un getAddr(char *path){
-    struct sockaddr_un addr;
-    memset(&addr, 0, sizeof(struct sockaddr_un));
-    addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, path, sizeof(addr.sun_path) - 1);
-    return addr;
 }

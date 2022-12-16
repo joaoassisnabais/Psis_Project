@@ -4,18 +4,8 @@
 #include <stdbool.h>
 #include <time.h>
 #include <ncurses.h>
-
 #include "defs.h"
 
-typedef struct prize_pos{
-    int x, y;
-    int hp;
-} prize_pos;
-
-typedef struct prize{
-    prize_pos *pr;
-    struct prize *next;
-} prize;
 
 typedef struct list_to_array_prizes{
     prize_pos *array;
@@ -23,6 +13,7 @@ typedef struct list_to_array_prizes{
 } array_and_size_prizes;
 
 //prize *head_prizes;
+prize_pos *init_prize(WINDOW *my_win);
 void addPrize(prize_pos *to_add, prize *head_prizes);
 prize_pos *getPrizeByPos(int x, int y, prize *head_prizes);
 void removePrize(prize_pos *to_remove, prize *head_prizes);

@@ -146,3 +146,13 @@ void draw_prize(WINDOW *my_win, prize_pos *prize, bool delete){
     waddch(my_win, hp);
     wrefresh(my_win);
 }
+
+prize_pos *init_prize(WINDOW *my_win){
+    prize_pos *pr = (prize_pos *) malloc(sizeof(prize_pos));
+
+    new_prize(my_win, pr, NULL, NULL, NULL); 
+    draw_prize(my_win, pr, false);
+
+    return pr;
+}
+

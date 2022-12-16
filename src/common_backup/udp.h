@@ -1,7 +1,6 @@
 #ifndef UDP_H
 #define UDP_H
 
-#include <sys/un.h>
 
 int unix_socket_init(char *path);
 struct sockaddr_un getAddr(char *path);

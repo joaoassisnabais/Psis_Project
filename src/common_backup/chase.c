@@ -7,7 +7,7 @@
 #include "list.h"
 #include "message.h"
 
-void render_message(message msg, WINDOW *my_win, WINDOW *message_win){
+void parse_message(message msg, WINDOW *my_win, WINDOW *message_win){
     int i;
     //char *txt = msg.txt;
     player_position_t *players = msg.players;
@@ -86,7 +86,14 @@ void move_player (player_position_t * player, int direction){
         if (player->x  != WINDOW_SIZE-2){
             player->x ++;
     }
-
 }
 
+player_position_t *init_client(WINDOW *my_win){
 
+    player_position_t *p = (player_position_t *) malloc(sizeof(player_position_t));
+
+    new_player_position(p, my_win); 
+    draw_player(my_win, p, false);
+
+    return p;
+}

@@ -18,27 +18,7 @@
 
 void updatePosition(player_position_t *player, int direction){
     player_position_t aux = *player;
-    bool is_bot, is_empty=trvoid new_prize (WINDOW *my_win, prize_pos *prize){
-    prize_pos aux;
-    prize->hp = 1 + (rand() % 5);
-    bool is_empty = false;
-    while (!is_empty){
-        aux.x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
-        aux.y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
-        is_empty = isEmpty(aux.x, aux.y);
-    }
-    prize->x = aux.x;
-    prize->y = aux.y;
-}
-
-prize_pos *init_prize(WINDOW *my_win){
-    prize_pos *pr = (prize_pos *) malloc(sizeof(prize_pos));
-
-    new_prize(my_win, pr); 
-    draw_prize(my_win, pr, false);
-
-    return pr;
-}ue;
+    bool is_bot, is_empty=true;
     move_player(&aux, direction);
 
     if(player->c == '*') is_bot = true;
