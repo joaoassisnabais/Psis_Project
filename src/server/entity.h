@@ -7,14 +7,7 @@
 #include <string.h>
 
 #include "../common/chase_internal.h"
-
-char bot_address[108]; 
-char player_address[10][108];
-
-
 #include "../common/defs.h"
-#include "../common/chase_internal.h"
-
 
 player_position_t *getClientByPos(int x, int y, game *state);
 bool isPlayerCol(int x, int y, game *state);

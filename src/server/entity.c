@@ -12,6 +12,9 @@
 #include "../common/chase_internal.h"
 #include "entity.h"
 
+static char bot_address[108]; 
+static char player_address[10][108];
+
 player_position_t *getClientByPos(int x, int y, game *state){
     for(int i=0; i<state->num_players; i++){
         if(state->players[i].x == x && state->players[i].y == y) return &state->players[i];
