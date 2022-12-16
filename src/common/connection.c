@@ -5,6 +5,9 @@
 #include <unistd.h>
 #include "connection.h"
 
+/*
+    Gets struc sockaddr_un from path
+*/
 struct sockaddr_un get_addr(char *path){
     struct sockaddr_un addr;
     memset(&addr, 0, sizeof(struct sockaddr_un));
@@ -13,6 +16,9 @@ struct sockaddr_un get_addr(char *path){
     return addr;
 }
 
+/*
+    Opens and binds a socket to the given path
+*/
 int unix_socket_init(const char *path){
     struct sockaddr_un addr;
     int sfd;

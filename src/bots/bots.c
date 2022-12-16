@@ -14,6 +14,9 @@
 int num_bots;
 int dgram_socket;
 
+/*
+    Sends directions to the server
+*/
 void send_msg(char *msg_txt, struct sockaddr_un servaddr){
     char command[16];
     message msg;
@@ -32,7 +35,9 @@ void send_msg(char *msg_txt, struct sockaddr_un servaddr){
     }
 }
 
-//create bot that opens a udp socket and sends a connect message to the server and then implements a while that allows the user to move the player and sends the new position to the server unless the user presses q to quit or esc
+/*
+    Loop to send directions to server
+*/
 void bot_loop(struct sockaddr_un serv_addr){
     char bot_array[24];
     char msg[100];

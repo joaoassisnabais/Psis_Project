@@ -1,6 +1,9 @@
 #include "chase_frontend.h"
 #include "defs.h"
 
+/*
+    Renders the screen from the game state
+*/
 void render(screen game_screen, game *game_state) {
     wclear(game_screen.game_window);
     box(game_screen.game_window, 0 , 0);
@@ -39,6 +42,9 @@ void render(screen game_screen, game *game_state) {
     wrefresh(game_screen.message_window);
 }
 
+/*
+    Initializes the screen
+*/
 void init_window(screen *game_screen){
     initscr();		        /* Start curses mode */
     keypad(stdscr, TRUE);   /* Enable keyboard mapping */

@@ -37,6 +37,9 @@ void parse_dead(message *msg) {
 }
 // ----
 
+/*
+    Sends messages to the server
+*/
 void send_msg(const char *msg_txt, struct sockaddr_un servaddr){
     char command[16];
     message msg;
@@ -54,6 +57,9 @@ void send_msg(const char *msg_txt, struct sockaddr_un servaddr){
     }
 }
 
+/*
+    Receives game updates
+*/
 void receive(){ // Receive a message, parse it and update state
     message msg;
     char command[16];
@@ -76,6 +82,9 @@ void receive(){ // Receive a message, parse it and update state
     }
 }
 
+/*
+    Pressed key to direction translation
+*/
 dir key_to_dir(int key) {
     switch (key) {
         case KEY_LEFT:
@@ -91,7 +100,9 @@ dir key_to_dir(int key) {
     }
 }
 
-//create client_loop that opens a udp socket and sends a connect message to the server and then implements a while that allows the user to move the player and sends the new position to the server unless the user presses q to quit or esc
+/*
+    Loop to send keys to server and get game updates
+*/
 void client_loop(struct sockaddr_un serv_addr){
     char msg[100];
     

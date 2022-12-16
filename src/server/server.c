@@ -51,6 +51,9 @@ void move_player (player_position_t * player, dir direction){
     }
 }
 
+/*
+    Updates positions by checking for collisions and works out collisions
+*/
 void updatePosition(player_position_t *player, dir direction){
     player_position_t aux = *player;
     bool is_bot, is_empty;
@@ -93,6 +96,9 @@ void moveBots(dir *directions){
     }
 }
 
+/*
+    Parses incoming bot directions message
+*/
 void parseBotDirections(message *msg) {
     char *token;
     int i=-1;
@@ -109,6 +115,9 @@ void parseBotDirections(message *msg) {
     moveBots(directions);
 }
 
+/*
+    Checks if player is alive and updates position
+*/
 bool updatePlayer(player_position_t *p, dir direction){
     if(p->health <= 0){ /* Healt_0 check */
         return false;
@@ -122,6 +131,9 @@ void write_ball_info(char *buffer) {
     sprintf(buffer, "ball_info %d %d %c", state.players[state.num_players-1].x, state.players[state.num_players-1].y, state.players[state.num_players-1].c);
 }
 
+/*
+    Reads incoming messge and updates game variables acordingly
+*/
 void parseMessage(message *msg, char *address){
         char command[16];
         char buffer[100];
@@ -183,6 +195,9 @@ void parseMessage(message *msg, char *address){
         return;
 }
 
+/*
+    Infinite server loop that receives and sends messages
+*/
 void serverLoop(){
     char address[108];
     message msg;

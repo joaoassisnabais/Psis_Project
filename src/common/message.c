@@ -5,6 +5,9 @@
 #include "message.h"
 #include "defs.h"
 
+/*
+    Creates message from txt and game state
+*/
 void create_message(message *msg, char *msg_txt, game *state){ 
     if (msg_txt != NULL) strncpy(msg->txt, msg_txt, MSG_TXT_SIZE);
     if (state != NULL) msg->state = *state;
