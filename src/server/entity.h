@@ -5,29 +5,43 @@
 #include <time.h>
 #include <ncurses.h>
 
-<<<<<<< HEAD
+#include "../common/chase_internal.h"
+
+char bot_address[108]; 
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <ncurses.h>
+#include <string.h>
+
+#include "../common/defs.h"
+#include "../common/chase_internal.h"
+#include "entity.h"
+
+char bot_address[108];
+char player_address[10][108];
+
+player_position_t *getClientByPos(int x, int y, game *state);
+bool isPlayerCol(int x, int y, game *state);
+bool isPrizeCol(int x, int y, game *state);
+bool isEmpty(int x, int y, game *state);
+player_position_t new_player_position (game *state);
+player_position_t new_bot_position (game *state);
+void addPlayer(game *state, char *address);
+void rmPlayer(game *state, player_position_t* player);
+void initBots(int num_bots, char *address, game *state);
+void addBot(char *address, game *state);
+prize_pos new_prize(game *state);
+void addPrize(game *state);
+void initPrizes(game *state, int num_prizes);
+time_t updatePrizes(time_t time0, game *state);
+player_position_t *getPlayerbyAddr(char *address, game *state);
+prize_pos getPrizebyPos(int x, int y, game *state);
+void rmPrizebyPos(int x, int y, game *state);
+void rmPlayerbyAddr(game *state, char *address);
 #endif
-=======
-#include "../common/prizes.h"
-#include "../common/list.h"
-
-void new_player_position (player_position_t *player, WINDOW *my_win, client *head_clients, client *head_bots, prize *head_prizes);
-void new_bot_position (player_position_t *bot, WINDOW *my_win, client *head_clients, client *head_bots, prize *head_prizes);
-
-bool isEmpty(int x, int y, client *head_clients, client *head_bots, prize *head_prizes);
-bool isPlayerCol(int x, int y, client *head_clients);
-bool isBotCol(int x, int y, client *head_bots);
-bool isPrizeCol(int x, int y, prize *head_prizes);
-
-void new_prize (prize_pos *p, client *head_clients, client *head_bots, prize *head_prizes);
-void addPrize(prize_pos *to_add, prize **head_prizes);
-prize_pos *init_prize(WINDOW *my_win, client *head_clients, client *head_bots, prize *head_prizes);
-
-player_position_t *init_client(WINDOW *my_win, client *head_clients, client *head_bots, prize *head_prizes);
-
-void initBots(int num_bots, char *ip, WINDOW *my_win, client *head_clients, client *head_bots, prize *head_prizes);
-void addBot(char *ip, WINDOW *my_win, client *head_clients, client *head_bots, prize *head_prizes);
-time_t updatePrizes(WINDOW *my_win, time_t time0, client *head_clients, client *head_bots, prize *head_prizes);
-
-#endif
->>>>>>> master

@@ -8,171 +8,167 @@
 #include <ncurses.h>
 #include <string.h>
 
-#include "../common/udp.h"
-#include "../common/chase.h"
 #include "../common/defs.h"
-#include "../common/list.h"
-#include "../common/prizes.h"
+#include "../common/chase_internal.h"
 #include "entity.h"
 
-bool isPlayerCol(int x, int y, client *head_clients){
-    client *aux = getClientByPos(x, y, head_clients);
+player_position_t *getClientByPos(int x, int y, game *state){
+    for(int i=0; i<state->num_players; i++){
+        if(state->players[i].x == x && state->players[i].y == y) return &state->players[i];
+    }
+    return NULL;
+}   
+
+bool isPlayerCol(int x, int y, game *state){
+    player_position_t *aux = getClientByPos(x, y, state);
     if(aux != NULL){
-        if(aux->p->x == x && aux->p->y == y) return true;
+        if(aux->x == x && aux->y == y) return true;
     }
     return false;
 }
 
-bool isBotCol(int x, int y, client *head_bots){
-    client *aux = getClientByPos(x, y, head_bots);
-    if(aux != NULL){
-        if(aux->p->x == x && aux->p->y == y) return true;
+bool isPrizeCol(int x, int y, game *state){
+    for(int i=0; i<state->num_prizes; i++){
+        if(state->prizes[i].x == x && state->prizes[i].y == y) return true;
     }
     return false;
 }
 
-bool isPrizeCol(int x, int y, prize *head_prizes){
-    prize *aux = getPrizeByPos(x, y, head_prizes);
-    if(aux != NULL){
-        if(aux->pr->x == x && aux->pr->y == y) return true;
-    }
-    return false;
-}
 
-bool isEmpty(int x, int y, client *head_clients, client *head_bots, prize *head_prizes){
-    if(isPlayerCol(x, y, head_clients) || isBotCol(x, y, head_bots) || isPrizeCol(x, y, head_prizes)){
+bool isEmpty(int x, int y, game *state){
+    if(isPlayerCol(x, y, state) || isPlayerCol(x, y, state) || isPrizeCol(x, y, state)){
         return false;
     }
     return true;
 }
 
-void new_player_position (player_position_t *player, WINDOW *my_win, client *head_clients, client *head_bots, prize *head_prizes){
+player_position_t new_player_position (game *state){
     player_position_t aux;
-    player->health = MAX_HP;
+    aux.c = 'A' + state->num_players;
+    aux.health = MAX_HP;
     bool is_empty = false;
     while (!is_empty){
         aux.x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
         aux.y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
-        is_empty = isEmpty(aux.x, aux.y, head_clients, head_bots, head_prizes);
+        is_empty = isEmpty(aux.x, aux.y, state);
     }
-    player->x = aux.x;
-    player->y = aux.y;
+    return aux;
 }
 
-<<<<<<< HEAD
-=======
-void new_bot_position (player_position_t *bot, WINDOW *my_win, client *head_clients, client *head_bots, prize *head_prizes){
+player_position_t new_bot_position (game *state){
     player_position_t aux;
-    bot->c = '*';
-    bot->health = 99999;
+    aux.c = '*';
+    aux.health = 99999;
     bool is_empty = false;
     while (!is_empty){
         aux.x = 1 + (rand() % (WINDOW_SIZE-3)); /* generates a random number between 1 and WINDOW_SIZE (not counting the edge) */
         aux.y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
-        is_empty = isEmpty(aux.x, aux.y, head_clients, head_bots, head_prizes);
+        is_empty = isEmpty(aux.x, aux.y, state);
     }
-    bot->x = aux.x;
-    bot->y = aux.y;
+    return aux;
 }
 
-void new_prize(prize_pos *p, client *head_clients, client *head_bots, prize *head_prizes){
+void addPlayer(game *state, char* address){
+    state->players[state->num_players]=new_player_position(state);
+    strcpy(player_address[state->num_players], address);
+    state->num_players+=1;
+}
+
+void rmPlayer(game *state, player_position_t *player){
+    for(int i=0; i<state->num_players; i++){
+        if(state->players[i].c == player->c){
+            for(int j=i; j<state->num_players-1; j++){
+                state->players[j] = state->players[j+1];
+                strcpy(player_address[j], player_address[j+1]);
+            }
+            state->num_players-=1;
+            return;
+        }
+    }
+}
+
+void initBots(int num_bots, char *address, game *state) {
+    strcpy(bot_address, address);
+    for (int i = 0; i < num_bots; i++) {
+        addBot(address, state);
+    }
+}
+
+
+void addBot(char *address, game *state){
+    state->bots[state->num_bots] = new_bot_position(state);
+    state->num_bots+=1;
+    return;
+}
+
+prize_pos new_prize(game *state){
     prize_pos aux;
-    p->hp = 1 + (rand() % 5);
+    aux.hp = 1 + (rand() % 5);
     bool is_empty = false;
     while (!is_empty){
         aux.x = 1 + (rand() % (WINDOW_SIZE-3)); /* generatesfalsea random number between 1 and WINDOW_SIZE (not counting the edge) */
         aux.y = 1 + (rand() % (WINDOW_SIZE-3)); /* potato potato */
-        is_empty = isEmpty(aux.x, aux.y, head_clients, head_bots, head_prizes);
+        is_empty = isEmpty(aux.x, aux.y, state);
     }
-    p->x = aux.x;
-    p->y = aux.y;
+    return aux;
 }
 
-prize_pos *init_prize(WINDOW *my_win, client *head_clients, client *head_bots, prize *head_prizes){
-    prize_pos *p = (prize_pos *) malloc(sizeof(prize_pos));
-
-    new_prize(p, head_clients, head_bots, head_prizes); 
-    draw_prize(my_win, p, false);
-
-    return p;
+void addPrize(game *state){
+    state->prizes[state->num_prizes] = new_prize(state);
+    state->num_prizes+=1;
 }
 
-player_position_t *init_client(WINDOW *my_win, client *head_clients, client *head_bots, prize *head_prizes){
-
-    player_position_t *p = (player_position_t *) malloc(sizeof(player_position_t));
-
-    new_player_position(p, my_win, head_clients, head_bots, head_prizes); 
-    draw_player(my_win, p, false);
-
-    return p;
-}
-
-//initialize bot list of type client with num_bots bots
-void initBots(int num_bots, char *ip, WINDOW *my_win, client *head_clients, client *head_bots, prize *head_prizes) {
-    for (int i = 0; i < num_bots; i++) {
-        addBot(ip, my_win, head_clients, head_bots, head_prizes);
+void initPrizes(game *state, int num_prizes){
+    for(int i=0; i<num_prizes; i++){
+        addPrize(state);
     }
 }
 
-//create addBot without using addClient
-void addBot(char *ip, WINDOW *my_win, client *head_bots, client *head_clients, prize *head_prizes) {
-    player_position_t *p = (player_position_t*) malloc(sizeof(player_position_t));
-    if (p == NULL) {
-        perror("Error allocating memory for new bot");
-        exit(-1);
-    }
-
-    client *newBot = (client*) malloc(sizeof(client));
-    if (newBot == NULL) {
-        perror("Error allocating memory for new bot");
-        exit(-1);
-    }
-
-    strcpy(newBot->address, ip);
-    new_bot_position(p, my_win, head_clients, head_bots, head_prizes);
-    newBot->p = p;
-    newBot->next = NULL;
-
-    if (head_bots == NULL) {
-        head_bots = newBot;
-    } else {
-        client *current = head_bots;
-        while (current->next != NULL) {
-            current = current->next;
-        }
-        current->next = newBot;
-    }
-
-    return;
-}
-
-void addPrize(prize_pos *to_add, prize **head_prizes) {
-    prize *newPrize = (prize*) malloc(sizeof(prize));
-    if (newPrize == NULL) {
-        perror("Error allocating memory for new prize");
-        exit(-1);
-    }
-    newPrize->pr = to_add;
-    newPrize->next = NULL;
-
-    if (*head_prizes == NULL) {
-        *head_prizes = newPrize;
-    } else {
-        prize *current = *head_prizes;
-        while (current->next != NULL) {
-            current = current->next;
-        }
-        current->next = newPrize;
-    }
-
-    return;
-}
-
-time_t updatePrizes(WINDOW *my_win, time_t time0, client *head_client, client *head_bots, prize *head_prizes){
-    if (clock()-time0 >= 5 && getNumPrizes(head_prizes)<10){
-        addPrize(init_prize(my_win, head_client, head_bots, head_prizes), &head_prizes);
+time_t updatePrizes(time_t time0, game *state){
+    if (clock()-time0 >= 5 && state->num_prizes<10){
+        addPrize(state);
         return clock();
     }
     return time0;
 }
->>>>>>> master
+
+player_position_t *getPlayerbyAddr(char *address, game *state){
+    for(int i=0; i<state->num_players; i++){
+        if(strcmp(player_address[i], address) == 0) return &state->players[i];
+    }
+    return NULL;
+}
+
+prize_pos getPrizebyPos(int x, int y, game *state){
+    for(int i=0; i<state->num_prizes; i++){
+        if(state->prizes[i].x == x && state->prizes[i].y == y) return state->prizes[i];
+    }
+    prize_pos aux;
+    aux.hp = 0;
+    return aux;
+}
+
+void rmPrizebyPos(int x, int y, game *state){
+    for(int i=0; i<state->num_prizes; i++){
+        if(state->prizes[i].x == x && state->prizes[i].y == y){
+            for(int j=i; j<state->num_prizes-1; j++){
+                state->prizes[j] = state->prizes[j+1];
+            }
+            state->num_prizes-=1;
+            return;
+        }
+    }
+}
+
+void rmPlayerbyAddr(game *state, char *address){
+    for(int i=0; i<state->num_players; i++){
+        if(strcmp(player_address[i], address) == 0){
+            for(int j=i; j<state->num_players-1; j++){
+                state->players[j] = state->players[j+1];
+                strcpy(player_address[j], player_address[j+1]);
+            }
+            state->num_players-=1;
+            return;
+        }
+    }
+}

@@ -1,12 +1,7 @@
 #ifndef BOTS_H
 #define BOTS_H
 
-#include "../common/defs.h"
-#include "../common/udp.h"
-#include "../common/message.h"
-
 #include <sys/un.h>
-
 
 int num_bots;
 int dgram_socket;

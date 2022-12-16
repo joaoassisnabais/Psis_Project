@@ -8,6 +8,8 @@
 #include <string.h>
 
 #include "bots.h"
+#include "../common/defs.h"
+#include "../common/message.h"
 
 int main(int argc, char **argv ){
     char bot_addr[108];
@@ -50,7 +52,7 @@ void send_msg(char *msg_txt, struct sockaddr_un servaddr){
     char command[16];
     message msg;
     sscanf(msg_txt, "%s", command);
-    msg.num_bots = num_bots;
+    msg.state.num_bots = num_bots;
     strncpy(msg.txt, msg_txt, MSG_TXT_SIZE);
 
 

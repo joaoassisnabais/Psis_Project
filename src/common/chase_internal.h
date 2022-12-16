@@ -11,11 +11,6 @@ typedef struct prize_pos{
     int hp;
 } prize_pos;
 
-typedef struct prize{
-    prize_pos *pr;
-    struct prize *next;
-} prize;
-
 typedef struct game {
     int num_players;
     int num_bots;

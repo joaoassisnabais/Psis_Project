@@ -10,46 +10,46 @@
 
 #include "server.h"
 #include "entity.h"
-#include "../common/list.h"
-#include "../common/udp.h"
-#include "../common/chase.h"
-#include "../common/prizes.h"
+#include "../common/chase_internal.h"
+#include "../common/chase_frontend.h"
+#include "../common/defs.h"
+#include "../common/message.h"
+#include "../common/connection.h"
 
 #define SOCK_PATH "/tmp/server_socket.sock"
+#define INIT_PRIZES 5
+
+
+game state;
+screen game_screen;
+int dgram_socket;
+bool no_reply=false;
 
 void updatePosition(player_position_t *player, int direction){
     player_position_t aux = *player;
-    bool is_bot, is_empty=true;
+    bool is_bot, is_empty;
     move_player(&aux, direction);
 
     if(player->c == '*') is_bot = true;
     else is_bot = false;
 
-    if(!isEmpty(aux.x, aux.y, head_clients, head_bots, head_prizes)){    /*collision with another player*/
-        is_empty = false;
-    }
+    if(isEmpty(aux.x, aux.y, &state)) is_empty = true;
+    else is_empty = false;
 
     if (is_empty){    /*moves into empty space or the wall*/
-        draw_player(my_win, player, true);
         player->x = aux.x;
         player->y = aux.y;
-        draw_player(my_win, player, false);
 
-    }else if((!is_bot) && (isPrizeCol(aux.x, aux.y, head_prizes))){         /*moves into a health pack*/
-        draw_player(my_win, player, true);
+    }else if((!is_bot) && (isPrizeCol(aux.x, aux.y, &state))){         /*moves into a health pack*/
         player->x = aux.x;
         player->y = aux.y;
-        player->health+=getPrizeByPos(aux.x, aux.y, head_prizes)->pr->hp;
+        player->health += getPrizeByPos(aux.x, aux.y, &state).hp;
+        rmPrizebyPos(aux.x, aux.y, &state);
 
-        prize *to_delete = getPrizeByPos(aux.x, aux.y, head_prizes);    /*delete the prize from screen and list*/
-        draw_prize(my_win, to_delete->pr, true);
-        removePrize(to_delete->pr, head_prizes);
-        
-        draw_player(my_win, player, false);
 
-    }else if(isPlayerCol(aux.x, aux.y, head_clients)){     /*moves into another player*/
+    }else if(isPlayerCol(aux.x, aux.y, &state)){     /*moves into another player*/
         if(!is_bot) player->health++;
-        getClientByPos(aux.x, aux.y, head_clients)->p->health--;
+        getClientByPos(aux.x, aux.y, &state)->health-=1;
     }
 
     if(!is_bot && (player->health>MAX_HP)){
@@ -80,113 +80,105 @@ void moveBots(message msg){
         }
     }
 
-    client *current = head_bots;
-    i=0;
-    while (current != NULL){
-        updatePosition(current->p, direction[i]);
-        current = current->next;
-        i++;
+    for(i=0; i<state.num_bots; i++){
+        updatePosition(&state.bots[i], direction[i]);
     }
 }
 
 
-bool movePlayer(message *msg, player_position_t *p){
-
-    if(p->health <= 0){ /* Healt_0 check */
-        return false;
-    }
-                
+void movePlayer(message *msg, player_position_t *p){
     int move_key;
-    sscanf(msg->txt, "%*s %d", &move_key);   /* Get the movement key */
-    updatePosition(p, move_key);
+    if(p->health <= 0){ /* Healt_0 check */
+        rmPlayer(&state, p);
+        create_message(msg, "dead", &state);
+    }else{
+        sscanf(msg->txt, "%*s %d", &move_key);   /* Get the movement key */
+        updatePosition(p, move_key);
+        create_message(msg, "field_status", &state);
+    }
+}
 
-    char msg_txt[20];
-    sprintf(msg_txt, "field_status %d %d %d", p->x, p->y, p->health);
-    strcpy(msg->txt, msg_txt);
-
-    return true;
+void write_ball_info(char **buffer) {
+    sprintf(*buffer, "ball_info %d %d %c", state.players[state.num_players-1].x, state.players[state.num_players-1].y, state.players[state.num_players-1].c);
 }
 
 void runProcesses(message *msg, char *address){
         char command[16];
+        char buffer[100];
         sscanf(msg->txt, "%s", command);
 
         if (strcmp(command, "connect") == 0) {  /* Connect */
-            client *new = addClient(address, init_client(my_win, head_clients, head_bots, head_prizes), head_clients);
-            char msg_txt[20];
-            sprintf(msg_txt, "ball_info %d %d %c", new->p->x, new->p->y, new->p->c);
-            create_message(msg, msg_txt, getPlayersArray(head_clients), getPlayersArray(head_bots), getPrizesArray(head_prizes));
+            addPlayer(&state, address);
+            write_ball_info(&buffer);
+            create_message(msg, buffer, &state);
 
         } else if (strcmp(command, "move") == 0) { /* Move */
-            if(movePlayer(msg, getClient(address, head_clients)->p) == false){
-                removeClient(address, head_clients);
-                create_message(msg, "dead", getPlayersArray(head_clients), getPlayersArray(head_bots), getPrizesArray(head_prizes));
-                return;
-            }
-            create_message(msg, NULL, getPlayersArray(head_clients), getPlayersArray(head_bots), getPrizesArray(head_prizes));
+            movePlayer(msg, getClientByAddr(address, state));
 
         } else if (strcmp(command, "disconnect") == 0) { /* Disconnect */
-            removeClient(address, head_clients);
-            strcpy(msg->txt, "no_reply");
+            rmPlayerbyAddr(&state, address);
+            no_reply = true;
 
         } else if (strcmp(command, "bot_connect") == 0) { /* bot connect */
-            initBots(msg->num_bots, address, my_win, head_clients, head_bots, head_prizes);
-            strcpy(msg->txt, "no_reply");
+            initBots(msg->state.num_bots, address, &state);
+            no_reply = true;
 
         }else if (strcmp(command, "bot_move") == 0){    /* bot move */
             moveBots(*msg);
-            strcpy(msg->txt, "no_reply");
+            no_reply = true;
         
         } else { /* Not a valid command */
-            strcpy(msg->txt, "no_reply");
+            no_reply = true;
         }
         return;
 }
 
-void serverLoop(char* addr){
+void serverLoop(){
     char address[108];
     message msg;
     struct sockaddr_un clientAddr;
-    socklen_t clientAddrLen;
-    clientAddrLen = sizeof(clientAddr);
+    socklen_t clientAddrLen = sizeof(clientAddr);
 
-    int dgram_socket = unix_socket_init(address);
-
-    for (int i = 0; i < 5; i++) {
-        addPrize(init_prize(my_win, head_clients, head_bots, head_prizes), &head_prizes);
-    }
-
+    initPrizes(&state, INIT_PRIZES);
     time_t time0 = clock();
     while (1)
     {
-        time0 = updatePrizes(my_win, time0, head_clients, head_bots, head_prizes);
-        //Receive the message from the client
-        if(recvfrom(dgram_socket, &msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, &clientAddrLen) == -1){
+        time0 = updatePrizes(time0, &state);    /*checking if a new prize can be spawned*/
+        
+        if(recvfrom(dgram_socket, &msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, &clientAddrLen) == -1){    /* Receive message */
             perror("Error receiving message");
             exit(-1);
         }; 
 
-        strcpy(address, clientAddr.sun_path);
-        runProcesses(&msg, address);
+        runProcesses(&msg, clientAddr.sun_path);    /* Update game variables */
 
-        if(strcmp(msg.txt, "no_reply") != 0){   /* If the client is disconnected, the message isn't listed or the message came from a bot, don't send anything */
+        if(!no_reply){      /* If the client is disconnected, the message isn't listed or the message came from a bot, don't send anything */
             if (sendto(dgram_socket, &msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, clientAddrLen) != sizeof(msg) ){
                 perror("Full message wasn't sent");
                 exit(-1);
             }
-        }       
+        }
+        render(game_screen, &state);
     }
     unlink(address);
+}
+
+initGame(){
+    state.num_bots=0;
+    state.num_players=0;
+    state.num_prizes=0;
 }
 
 int main(int argc, char **argv){
     char address[108];
 
-    init_window(my_win, message_win);
+    init_window(&game_screen);
+    initGame();
 
     //strcpy(address,argv[1]);
     strcpy(address,SOCK_PATH);
-    serverLoop(address);
+    dgram_socket = unix_socket_init(address);
+    serverLoop();
     
     exit(0);
 }

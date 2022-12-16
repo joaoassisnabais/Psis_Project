@@ -65,7 +65,7 @@ int getNumPrizes(prize *head_prizes) {
 }
 
 //array and size for prizes
-array_and_size_prizes *getPrizesArray(prize *head_prizes) {
+prizArrayz *getPrizesArray(prize *head_prizes) {
     prize_pos *array = (prize_pos*) malloc(sizeof(prize_pos) * 10);
     if (array == NULL) {
         perror("Error allocating memory for prize_pos array");
