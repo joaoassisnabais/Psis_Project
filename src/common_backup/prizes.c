@@ -5,43 +5,20 @@
 #include "prizes.h"
 #include "chase.h"
 
-
-void addPrize(prize_pos *to_add, prize *head_prizes) {
-    prize *newPrize = (prize*) malloc(sizeof(prize));
-    if (newPrize == NULL) {
-        perror("Error allocating memory for new prize");
-        exit(-1);
-    }
-    newPrize->pr = to_add;
-    newPrize->next = NULL;
-
-    if (head_prizes == NULL) {
-        head_prizes = newPrize;
-    } else {
-        prize *current = head_prizes;
-        while (current->next != NULL) {
-            current = current->next;
-        }
-        current->next = newPrize;
-    }
-
-    return;
-}
-
-
 //get prize by position
-prize_pos *getPrizeByPos(int x, int y, prize *head_prizes) {
+prize *getPrizeByPos(int x, int y, prize *head_prizes) {
     prize *current = head_prizes;
 
     if (current == NULL) {
         return NULL;
     }
 
-    while (current != NULL && (current->pr->x != x && current->pr->y != y)) {
-        current = current->next;
+    while (current != NULL){
+        if(current->pr->x != x || current->pr->y != y)
+            current = current->next;
     }
 
-    return current->pr;
+    return current;
 }
 
 //remove prize_pos from prize struct
@@ -123,14 +100,6 @@ void freePrizeList(prize *head_prizes) {
         free(current);
         current = next;
     }
-}
-
-time_t updatePrizes(WINDOW *my_win, time_t time0, prize *head_prizes){
-    if (clock()-time0 >= 5 && getNumPrizes(head_prizes)<10){
-        addPrize(init_prize(my_win), head_prizes);
-        return clock();
-    }
-    return time0;
 }
 
 void draw_prize(WINDOW *my_win, prize_pos *prize, bool delete){

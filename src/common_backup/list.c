@@ -161,44 +161,4 @@ client *getClientByPos(int x, int y, client *head_clients) {
     return current;
 }
 
-/*********************************BOTS**********************************/
-
-//initialize bot list of type client with num_bots bots
-void initBots(int num_bots, char *ip, client *head_bots, WINDOW *my_win) {
-    for (int i = 0; i < num_bots; i++) {
-        addBot(ip, head_bots, my_win);
-    }
-}
-
-//create addBot without using addClient
-void addBot(char *ip, client *head_bots, WINDOW *my_win) {
-    player_position_t *p = (player_position_t*) malloc(sizeof(player_position_t));
-    if (p == NULL) {
-        perror("Error allocating memory for new bot");
-        exit(-1);
-    }
-
-    client *newBot = (client*) malloc(sizeof(client));
-    if (newBot == NULL) {
-        perror("Error allocating memory for new bot");
-        exit(-1);
-    }
-
-    strcpy(newBot->address, ip);
-    new_bot_position(p, my_win);
-    newBot->p = p;
-    newBot->next = NULL;
-
-    if (head_bots == NULL) {
-        head_bots = newBot;
-    } else {
-        client *current = head_bots;
-        while (current->next != NULL) {
-            current = current->next;
-        }
-        current->next = newBot;
-    }
-
-    return;
-}
 

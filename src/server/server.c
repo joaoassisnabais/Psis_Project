@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "server.h"
+#include "entity.h"
 #include "../common/list.h"
 #include "../common/udp.h"
 #include "../common/chase.h"
@@ -24,7 +25,7 @@ void updatePosition(player_position_t *player, int direction){
     if(player->c == '*') is_bot = true;
     else is_bot = false;
 
-    if(isPlayerCol(aux.x, aux.y) || isPrizeCol(aux.x, aux.y) || isBotCol(aux.x, aux.y)){    /*collision with another player*/
+    if(!isEmpty(aux.x, aux.y, head_clients, head_bots, head_prizes)){    /*collision with another player*/
         is_empty = false;
     }
 
@@ -34,19 +35,19 @@ void updatePosition(player_position_t *player, int direction){
         player->y = aux.y;
         draw_player(my_win, player, false);
 
-    }else if((!is_bot) && (isPrizeCol(aux.x, aux.y))){         /*moves into a health pack*/
+    }else if((!is_bot) && (isPrizeCol(aux.x, aux.y, head_prizes))){         /*moves into a health pack*/
         draw_player(my_win, player, true);
         player->x = aux.x;
         player->y = aux.y;
-        player->health+=getPrizeByPos(aux.x, aux.y, head_prizes)->hp;
+        player->health+=getPrizeByPos(aux.x, aux.y, head_prizes)->pr->hp;
 
-        prize_pos *to_delete = getPrizeByPos(aux.x, aux.y, head_prizes);    /*delete the prize from screen and list*/
-        draw_prize(my_win, to_delete, true);
-        removePrize(to_delete, head_prizes);
+        prize *to_delete = getPrizeByPos(aux.x, aux.y, head_prizes);    /*delete the prize from screen and list*/
+        draw_prize(my_win, to_delete->pr, true);
+        removePrize(to_delete->pr, head_prizes);
         
         draw_player(my_win, player, false);
 
-    }else if(isPlayerCol(aux.x, aux.y)){     /*moves into another player*/
+    }else if(isPlayerCol(aux.x, aux.y, head_clients)){     /*moves into another player*/
         if(!is_bot) player->health++;
         getClientByPos(aux.x, aux.y, head_clients)->p->health--;
     }
@@ -111,7 +112,7 @@ void runProcesses(message *msg, char *address){
         sscanf(msg->txt, "%s", command);
 
         if (strcmp(command, "connect") == 0) {  /* Connect */
-            client *new = addClient(address, init_client(my_win), head_clients);
+            client *new = addClient(address, init_client(my_win, head_clients, head_bots, head_prizes), head_clients);
             char msg_txt[20];
             sprintf(msg_txt, "ball_info %d %d %c", new->p->x, new->p->y, new->p->c);
             create_message(msg, msg_txt, getPlayersArray(head_clients), getPlayersArray(head_bots), getPrizesArray(head_prizes));
@@ -129,7 +130,7 @@ void runProcesses(message *msg, char *address){
             strcpy(msg->txt, "no_reply");
 
         } else if (strcmp(command, "bot_connect") == 0) { /* bot connect */
-            initBots(msg->num_bots, address, head_bots, my_win);
+            initBots(msg->num_bots, address, my_win, head_clients, head_bots, head_prizes);
             strcpy(msg->txt, "no_reply");
 
         }else if (strcmp(command, "bot_move") == 0){    /* bot move */
@@ -152,13 +153,13 @@ void serverLoop(char* addr){
     int dgram_socket = unix_socket_init(address);
 
     for (int i = 0; i < 5; i++) {
-        addPrize(init_prize(my_win), head_prizes);
+        addPrize(init_prize(my_win, head_clients, head_bots, head_prizes), &head_prizes);
     }
 
     time_t time0 = clock();
     while (1)
     {
-        time0 = updatePrizes(my_win, time0, head_prizes);
+        time0 = updatePrizes(my_win, time0, head_clients, head_bots, head_prizes);
         //Receive the message from the client
         if(recvfrom(dgram_socket, &msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, &clientAddrLen) == -1){
             perror("Error receiving message");

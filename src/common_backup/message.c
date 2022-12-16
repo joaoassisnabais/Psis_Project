@@ -7,7 +7,11 @@
 #include "defs.h"
 
 void create_message(message *msg, char *msg_txt, array_and_size *players, array_and_size *bots, array_and_size_prizes *prizes){ 
+<<<<<<< HEAD:src/common_backup/message.c
     if (msg_txt != NULL) strncpy(msg->txt, msg_txt, MSG_TXT_SIZE);
+=======
+    if(msg_txt!=NULL) strncpy(msg->txt, msg_txt, MSG_TXT_SIZE);
+>>>>>>> master:src/common/message.c
     msg->num_players = players->size;
     msg->num_bots = bots->size;
     msg->num_prizes = prizes->size;
