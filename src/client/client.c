@@ -11,7 +11,7 @@
 #include "../common/message.h"
 #include "../common/chase_frontend.h"
 
-int dgram_socket;
+int serv_socket;
 bool serv_full=false;
 game game_state;
 screen game_screen = {NULL, NULL};
@@ -46,6 +46,7 @@ void send_msg(const char *msg_txt, struct sockaddr_un servaddr){
     strncpy(msg.txt, msg_txt, MSG_TXT_SIZE);
     sscanf(msg.txt, "%s", command);
 
+    //!TODO:create a send message function
     if(strcmp(command, "connect") == 0){
         sendto(dgram_socket, &msg, sizeof(msg), 0, (struct sockaddr *) &servaddr, sizeof(servaddr));
 
@@ -64,6 +65,7 @@ void receive(){ // Receive a message, parse it and update state
     message msg;
     char command[16];
 
+    //!TODO: create a receive message function
     if(recv(dgram_socket, &msg, sizeof(msg), 0) == 0){
         perror("Error receiving message, message is empty");
         exit(-1);
@@ -117,7 +119,6 @@ void client_loop(struct sockaddr_un serv_addr){
         dir direction = key_to_dir(key);
 
         if (direction != DIR_NONE) {
-            wprintw(game_screen.game_window, "key: %d\n", key);
             sprintf(msg, "move %d", direction);
             send_msg(msg, serv_addr);
             receive();
@@ -132,24 +133,25 @@ void client_loop(struct sockaddr_un serv_addr){
     if(key == 'q' || key == 27) send_msg("disconnect", serv_addr);
 }
 
-int main(int argc, char **argv ){;
+int main(int argc, char **argv ){
+    char address[108];
+    int port;
     if (argc < 2) {
-        printf("Usage: ./chase-client <server_address>\n");
+        printf("Usage: ./chase-client <server_address> <server_port>\n");
         exit(0);
     }
-
-    char client_addr[108];
 
     init_window(&game_screen);
     cbreak();				/* Line buffering disabled	*/
 
-    sprintf(client_addr, "/tmp/client%d", getpid());
-    dgram_socket = unix_socket_init(client_addr);
+    strcpy(address,argv[1]);
+    port = atoi(argv[2]);
+    serv_socket = tcp_connect(address, port);
 
     client_loop(get_addr(argv[1]));
 
     kill_window(&game_screen);
-    unlink(client_addr);
+    close(serv_socket);
     printf("\nKicked out!\n");
     exit(0);
 }

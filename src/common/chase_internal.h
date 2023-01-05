@@ -15,7 +15,7 @@ typedef struct game {
     int num_players;
     int num_bots;
     int num_prizes;
-    player_position_t players[10];
+    player_position_t *players;
     player_position_t bots[10];
     prize_pos prizes[10];
 } game;

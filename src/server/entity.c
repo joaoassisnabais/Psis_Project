@@ -13,7 +13,8 @@
 #include "entity.h"
 
 static char bot_address[108];
-static char player_address[10][108];
+static char player_address[WINDOW_SIZE*WINDOW_SIZE][108];
+int letter_buffer=0;
 
 player_position_t *getClientByPos(int x, int y, game *state){
     for(int i=0; i<state->num_players; i++){
@@ -79,6 +80,7 @@ player_position_t new_bot_position (game *state){
 }
 
 void addPlayer(game *state, char* address){
+    state->players = realloc(state->players, sizeof(player_position_t)*(state->num_players+1));
     state->players[state->num_players]=new_player_position(state);
     strcpy(player_address[state->num_players], address);
     state->num_players+=1;
@@ -92,6 +94,21 @@ void rmPlayer(game *state, player_position_t *player){
                 strcpy(player_address[j], player_address[j+1]);
             }
             state->num_players-=1;
+            realloc(state->players, sizeof(player_position_t)*(state->num_players-1));
+            return;
+        }
+    }
+}
+
+void rmPlayerByAddr(game *state, char *address){
+    for(int i=0; i<state->num_players; i++){
+        if(strcmp(player_address[i], address) == 0){
+            for(int j=i; j<state->num_players; j++){
+                state->players[j] = state->players[j+1];
+                strcpy(player_address[j], player_address[j+1]);
+            }
+            state->num_players-=1;
+            realloc(state->players, sizeof(player_position_t)*(state->num_players-1));
             return;
         }
     }
@@ -165,19 +182,6 @@ void rmPrizeByPos(int x, int y, game *state){
                 state->prizes[j] = state->prizes[j+1];
             }
             state->num_prizes-=1;
-            return;
-        }
-    }
-}
-
-void rmPlayerByAddr(game *state, char *address){
-    for(int i=0; i<state->num_players; i++){
-        if(strcmp(player_address[i], address) == 0){
-            for(int j=i; j<state->num_players; j++){
-                state->players[j] = state->players[j+1];
-                strcpy(player_address[j], player_address[j+1]);
-            }
-            state->num_players-=1;
             return;
         }
     }

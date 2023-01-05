@@ -13,9 +13,11 @@ void render(screen game_screen, game *game_state) {
 
     //print players
     for(int i = 0; i < game_state->num_players; i++){
-        if(game_state->players[i].health>0){  
-            wmove(game_screen.game_window, game_state->players[i].y, game_state->players[i].x);
-            waddch(game_screen.game_window, game_state->players[i].c);
+        if(&game_state->players[i] != NULL){
+            if(game_state->players[i].health>0){  
+                wmove(game_screen.game_window, game_state->players[i].y, game_state->players[i].x);
+                waddch(game_screen.game_window, game_state->players[i].c);
+            }
         }
     }   
     //print bots

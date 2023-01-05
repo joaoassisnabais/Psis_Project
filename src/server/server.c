@@ -25,7 +25,7 @@
 
 game state;
 screen game_screen;
-int dgram_socket;
+int server_socket;
 bool no_reply=false;
 
 void move_player (player_position_t * player, dir direction){    
@@ -211,6 +211,8 @@ void serverLoop(){
         clientAddrLen = sizeof(clientAddr);
         time0 = updatePrizes(time0, &state);    /*checking if a new prize can be spawned*/
         
+
+        //!TODO:create receive message function
         if(recvfrom(dgram_socket, &msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, &clientAddrLen) == -1){    /* Receive message */
             perror("Error receiving message");
             exit(-1);
@@ -218,8 +220,7 @@ void serverLoop(){
 
         parseMessage(&msg, clientAddr.sun_path);    /* Update game variables */
 
-        //checjkar o que esta a dar de errado no remove
-
+        //!TODO:create send message function
         if(!no_reply){      /* If the client is disconnected, the message isn't listed or the message came from a bot, don't send anything */
             if (sendto(dgram_socket, &msg, sizeof(msg), 0, (struct sockaddr *) &clientAddr, clientAddrLen) == -1){
                 perror("Full message wasn't sent");
@@ -230,25 +231,33 @@ void serverLoop(){
         }
         render(game_screen, &state);
     }
-    unlink(address);
+    close_socket(server_socket);
 }
 
 void initGame(){
     state.num_bots=0;
     state.num_players=0;
     state.num_prizes=0;
+    state.players = NULL;
 }
 
 int main(int argc, char **argv){
     char address[108];
+    int port;
+
+    if (argc != 3) {
+        printf("Usage: ./chase-server <server_address> <server_port>\n");
+        exit(0);
+    }
 
     init_window(&game_screen);
     initGame();
     initBotAddr();
 
-    if(argc==2) strcpy(address,argv[1]);
-    else strcpy(address,SOCK_PATH);
-    dgram_socket = unix_socket_init(address);
+    strcpy(address,argv[1]);
+    port = atoi(argv[2]);
+
+    server_socket= tcp_socket_init(address, port);
     serverLoop();
 
     exit(0);
